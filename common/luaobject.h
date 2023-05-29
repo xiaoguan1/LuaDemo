@@ -39,19 +39,3 @@ typedef struct lua_TValue {
 
 #endif
 
-/**
-
-
-
-LUA_NUMINT 		二进制：0000 0001	十进制：1
-LUA_NUMFLT 		二进制：0001 0001	十进制：17
-
-LUA_TLCL 		二进制：0000 0111	十进制：7
-LUA_TLCF 		二进制：0001 0111	十进制：23
-LUA_TCCL 		二进制：0010 0111	十进制：39
-
-LUA_LNGSTR 		二进制：0000 0100	十进制：4
-LUA_SHRSTR 		二进制：0001 0100	十进制：20
-
- * 
-//
