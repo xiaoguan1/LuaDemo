@@ -1,3 +1,11 @@
+#ifndef luastate_h
+#define luastate_h
+
+#include "luaobject.h"
+
+#define LUA_EXTRASPACE sizeof(void*)
+#define G(L) ((L)->l_G)
+
 typedef TValue* StkId;
 
 struct CallInfo {
@@ -46,3 +54,6 @@ typedef struct global_State {
 	lua_CFunction panic;
 } global_State;
 
+struct lua_State* lua_newstate(lua_Alloc alloc, void* ud);
+
+#endif

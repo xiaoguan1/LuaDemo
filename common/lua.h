@@ -11,6 +11,12 @@ static int POINTER_SIZE = sizeof(void*);
 #define LUA_NUMBER float
 #endif
 
+// ERROR CODE
+#define LUA_OK 0
+#define LUA_ERRERR 1
+#define LUA_ERRMEM 2
+#define LUA_ERRRUN 3
+
 // basic object type
 #define LUA_TNUMBER 1
 #define LUA_TLIGHTUSERDATA 2
@@ -21,5 +27,10 @@ static int POINTER_SIZE = sizeof(void*);
 #define LUA_TFUNCTION 7
 #define LUA_TTHREAD 8
 #define LUA_TNONE 9
+
+// stack define
+#define LUA_MINSTACK 20
+#define LUA_STACKSIZE (2 * LUA_MINSTACK)
+#define LUA_EXTRASTACK 5
 
 #endif

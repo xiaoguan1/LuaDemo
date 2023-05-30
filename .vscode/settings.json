@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "luastate.h": "c",
+        "luaobject.h": "c"
+    }
+}
