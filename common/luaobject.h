@@ -12,11 +12,11 @@ typedef int (*lua_CFunction)(lua_State* L);
 
 
 typedef union lua_Value {
-	void* p;			// light userdata
-	int b;				// boolean: 1 = true, 0 = false
-	lua_Integer i;
-	lua_Number n;
-	lua_CFunction f;
+	void* p;			// light userdata类型变量
+	int b;				// 布尔值boolean: 1 = true, 0 = false
+	lua_Integer i;		// 整型变量
+	lua_Number n;		// 浮点型变量
+	lua_CFunction f;	// Light C Functions 类型变量(函数指针)
 } Value;
 
 typedef struct lua_TValue {
