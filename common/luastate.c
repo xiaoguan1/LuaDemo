@@ -21,7 +21,7 @@ static void stack_init(struct lua_State* L) {
 	L->errorfunc = 0;
 
 	int i;
-	for (i = 0, i < L->stack_size; i++) {
+	for (i = 0; i < L->stack_size; i++) {
 		setnilvalue(L->stack + i);
 	}
 	L->top ++;
@@ -29,7 +29,7 @@ static void stack_init(struct lua_State* L) {
 	L->ci = &L->base_ci;
 	L->ci->func = L->stack;
 	L->ci->top = L->stack + LUA_MINSTACK;
-	L->ci->previous = L->ci->next = NULL
+	L->ci->previous = L->ci->next = NULL;
 }
 
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
