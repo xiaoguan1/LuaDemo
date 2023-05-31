@@ -55,5 +55,6 @@ typedef struct global_State {
 } global_State;
 
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud);
+void lua_close(struct lua_State* L);
 
 #endif

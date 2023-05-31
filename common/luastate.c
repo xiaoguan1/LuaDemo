@@ -54,3 +54,34 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	return L;
 }
 
+
+#define fromstate(L) (cast(LX*, cast(lu_byte*, (L)) - offsetof(LX, 1)))
+
+// 回收栈空间
+static void free_stack(struct lua_State* L) {
+	global_State* g = G(L);
+
+	// 先g->frealloc 再 *(g->frealloc)
+	(*g->frealloc)(g->ud, L->stack, sizeof(TValue), 0);
+
+	L->stack = L->stack_last = L->top = NULL;
+	L->stack_size = 0;
+}
+
+void lua_close(struct lua_State* L) {
+	struct global_State* g = G(L);
+	struct lua_State* L1 = g->mainthread;
+
+	struct CallInfo* ci = &L1->base_ci;
+	while (ci->next) {
+		struct CallInfo* next = ci->next->next;
+		struct CallInfo* free_ci = ci->next;
+
+		(*g->frealloc)(g->ud, free_ci, sizeof(struct CallInfo), 0);
+		ci = next;
+	}
+
+	free_stack(L1);
+	(*g->frealloc)(g->ud, fromstate(L1), sizeof(LG), 0);
+}
+

@@ -11,9 +11,15 @@ static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
     return realloc(ptr, nsize);
 }
 
+
 struct lua_State* luaL_newstate() {
     struct lua_State* L = lua_newstate(&l_alloc, NULL);
     return L;
+}
+
+
+void luaL_close(struct lua_State* L) {
+    lua_close(L);
 }
 
 
