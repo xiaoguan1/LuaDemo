@@ -26,12 +26,13 @@ static void stack_init(struct lua_State* L) {
 	}
 	L->top ++;
 
-	L->ci = &L->base_ci;
+	L->ci = &L->base_ci;	// L->ci 指针指向了 L->base_ci 的 CallInfo结构体!!!
 	L->ci->func = L->stack;
 	L->ci->top = L->stack + LUA_MINSTACK;
 	L->ci->previous = L->ci->next = NULL;
 }
 
+// 创建lua_State
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	struct global_State* g;
 	struct lua_State* L;
@@ -54,8 +55,8 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	return L;
 }
 
-
-#define fromstate(L) (cast(LX*, cast(lu_byte*, (L)) - offsetof(LX, 1)))
+#define cast(t, exp) ((t)(exp))
+#define fromstate(L) (cast(LX*, cast(lu_byte*, (L)) - offsetof(LX, l)))
 
 // 回收栈空间
 static void free_stack(struct lua_State* L) {
@@ -68,6 +69,7 @@ static void free_stack(struct lua_State* L) {
 	L->stack_size = 0;
 }
 
+// 回收lua_State
 void lua_close(struct lua_State* L) {
 	struct global_State* g = G(L);
 	struct lua_State* L1 = g->mainthread;
@@ -83,5 +85,51 @@ void lua_close(struct lua_State* L) {
 
 	free_stack(L1);
 	(*g->frealloc)(g->ud, fromstate(L1), sizeof(LG), 0);
+}
+
+
+//参数入栈
+void setivalue(StkId target, int integer){
+	target->value_.i = integer;
+	target->tt_ = LUA_NUMINT;
+}
+
+void setfvalue(StkId target, lua_CFunction f){
+	target->value_.f = f;
+	target->tt_ = LUA_TLCF;
+}
+
+void setfltvalue(StkId target, float number){
+	target->value_.n = number;
+	target->tt_ = LUA_NUMFLT;
+}
+
+void setbvalue(StkId target, bool b){
+	target->value_.b = b;
+	target->tt_ = LUA_TBOOLEAN;
+}
+
+void setnilvalue(StkId target){
+	target->tt_ = LUA_TNIL;
+}
+
+void setpvalue(StkId target, void* p){
+	target->value_.p = p;
+	target->tt_ = LUA_TLIGHTUSERDATA;
+}
+
+void setobj(StkId target, StkId value){
+	target->value_ = value->value_;
+	target->tt_ = value->tt_;
+}
+
+void increate_top(struct lua_State*) {
+	L->top++;
+	assert(L->top <= L->ci->top);
+}
+
+void lua_pushinteger(struct lua_State* L, int integer){
+	setivalue(L->top, integer);
+	increate_top(L);
 }
 

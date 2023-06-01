@@ -57,4 +57,17 @@ typedef struct global_State {
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud);
 void lua_close(struct lua_State* L);
 
+
+void setivalue(StkId target, int integer);			// push int
+void setfvalue(StkId target, lua_CFunction f);		// push light C function
+void setfltvalue(StkId target, float number);		// push float
+void setbvalue(StkId target, bool b);				// push bool
+void setnilvalue(StkId target);						// push nil
+void setpvalue(StkId target, void* p);				// push 指针
+
+void setobj(StkId target, StkId value);				// push TValue
+
+void increate_top(struct lua_State* L);
+void lua_pushinteger(struct lua_State* L, int integer);
+
 #endif
