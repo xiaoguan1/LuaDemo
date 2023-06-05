@@ -32,5 +32,9 @@ static int POINTER_SIZE = sizeof(void*);
 #define LUA_MINSTACK 20
 #define LUA_STACKSIZE (2 * LUA_MINSTACK)
 #define LUA_EXTRASTACK 5
+#define LUA_MAXCALLS 200
+
+// error tips
+#define LUA_ERROR(L, s) printf("LUA ERROR:%s", s);
 
 #endif

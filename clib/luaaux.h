@@ -6,5 +6,7 @@ struct lua_State* luaL_newstate();
 
 void luaL_close(struct lua_State* L);
 
+lua_Integer luaL_tointeger(struct lua_State* L, int idx);
+
 #endif
 

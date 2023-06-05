@@ -68,6 +68,24 @@ void setpvalue(StkId target, void* p);				// push 指针
 void setobj(StkId target, StkId value);				// push TValue
 
 void increate_top(struct lua_State* L);
+
 void lua_pushinteger(struct lua_State* L, int integer);
+void lua_pushcfunction(struct lua_State* L, lua_CFunction f);
+void lua_pushnumber(struct lua_State* L, float number);
+void lua_pushboolean(struct lua_State* L, bool b);
+void lua_pushnil(struct lua_State* L);
+void lua_pushlightuserdata(struct lua_State* L, void* p);
+
+
+// 出栈
+void lua_settop(struct lua_State* L, int idx);
+int lua_gettop(struct lua_State* L);
+void lua_pop(struct lua_State* L);
+
+// 获取栈上的值
+lua_Integer lua_tointegerx(struct lua_State* L, int id, int* isnum);
+lua_Number lua_tonumberx(struct lua_State* L, int idx, int* isnum);
+bool lua_toboolean(struct lua_State* L, int idx);
+int lua_isnil(struct lua_State* L, int idx);
 
 #endif

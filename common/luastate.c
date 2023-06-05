@@ -12,7 +12,7 @@ typedef struct LG {
 
 static void stack_init(struct lua_State* L) {
 	L->stack = (StkId)luaM_realloc(L, NULL, 0, LUA_STACKSIZE * sizeof(TValue));
-	L->stack_size = LUA_STACKSIZE;
+	L->stack_size = LUA_STACKSIZE;	
 	L->stack_last = L->stack + LUA_STACKSIZE - LUA_EXTRASTACK;
 	L->next = L->previous = NULL;
 	L->status = LUA_OK;
@@ -123,7 +123,7 @@ void setobj(StkId target, StkId value){
 	target->tt_ = value->tt_;
 }
 
-void increate_top(struct lua_State*) {
+void increate_top(struct lua_State* L) {
 	L->top++;
 	assert(L->top <= L->ci->top);
 }
@@ -133,3 +133,99 @@ void lua_pushinteger(struct lua_State* L, int integer){
 	increate_top(L);
 }
 
+void lua_pushcfunction(struct lua_State* L, lua_CFunction f) {
+	setfvalue(L->top, f);
+	increate_top(L);
+}
+
+void lua_pushnumber(struct lua_State* L, float number) {
+	setfltvalue(L->top, number);
+	increate_top(L);
+}
+
+void lua_pushboolean(struct lua_State* L, bool b) {
+	setbvalue(L->top, b);
+	increate_top(L);
+}
+
+void lua_pushnil(struct lua_State* L) {
+	setnilvalue(L);
+	increate_top(L);
+}
+
+void lua_pushlightuserdata(struct lua_State* L, void* p) {
+	setpvalue(L, p);
+	increate_top(L);
+}
+
+// 出栈
+int lua_gettop(struct lua_State* L) {
+	return cast(int, L->top - (L->ci->func + 1));
+}
+
+void lua_settop(struct lua_State* L, int idx) {
+	StkId func = L->ci->func;
+	if (idx >= 0) {
+		assert(idx <= L->stack_last - (func + 1));
+		while (L->top < (func + 1) + idx) {
+			setnilvalue(L->top++);
+		}
+		L->top = func + 1 + idx;
+	}else{
+		assert(L->top + idx > func);
+		L->top = L->top + idx;
+	}
+}
+
+void lua_pop(struct lua_State* L) {
+	lua_settop(L, -1);
+}
+
+// 根据索引获取
+static TValue* index2addr(struct lua_State* L, int idx) {
+	if (idx >= 0) {
+		assert(L->ci->func + idx < L->ci->top);
+		return L->ci->func + idx;
+	}else{
+		assert(L->ci->top + idx > L->ci->func);
+		return L->ci->top + idx;
+	}
+}
+
+// 获取栈的值
+lua_Integer lua_tointegerx(struct lua_State* L, int idx, int* isnum) {
+	lua_Integer ret = 0;
+	TValue* addr = index2addr(L, idx);
+	if (addr->tt_ == LUA_NUMINT) {
+		ret = addr->value_.i;
+		*isnum = 1;
+	}else{
+		*isnum = 0;
+		LUA_ERROR(L, "can not convert to integer!\n");
+	}
+	return ret;
+}
+
+lua_Number lua_tonumberx(struct lua_State* L, int idx, int* isnum) {
+	lua_Number ret = 0.0f;
+	TValue* addr = index2addr(L, idx);
+	if (addr->tt_ == LUA_NUMFLT) {
+		ret = addr->value_.i;
+		*isnum = 1;
+	}else{
+		*isnum = 0;
+		LUA_ERROR(L, "can not convert to number!\n");
+	}
+	return ret;
+}
+
+bool lua_toboolean(struct lua_State* L, int idx){
+	TValue* addr = index2addr(L, idx);
+	// nil值默认为false、其类型只要b为0照样为false（有转换的意味）
+	return !(addr->tt_ == LUA_TNIL || addr->value_.b == 0);
+}
+
+int lua_isnil(struct lua_State* L, int idx) {
+	TValue* addr = index2addr(L, idx);
+	return addr->tt_ == LUA_TNIL;
+}

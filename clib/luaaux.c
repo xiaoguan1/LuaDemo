@@ -17,9 +17,12 @@ struct lua_State* luaL_newstate() {
     return L;
 }
 
-
 void luaL_close(struct lua_State* L) {
     lua_close(L);
 }
 
-
+lua_Integer luaL_tointeger(struct lua_State* L, int idx) {
+    int isnum = 0;
+    lua_Integer ret = lua_tointegerx(L, idx, &isnum);
+    return ret;
+}
