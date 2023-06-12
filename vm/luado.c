@@ -89,7 +89,10 @@ static struct CallInfo* next_ci(struct lua_State* L, StkId func, int nresult) {
 	ci->nresult = nresult;
 	ci->callstatus = LUA_OK;
 	ci->func = func;
+
+	// L->top 的值不能超过 L->ci->top，否则会抛出"stack overflow"的报错，这样做的目的是为了避免溢出!(?????)
 	ci->top = L->top + LUA_MINSTACK;
+
 	L->ci = ci;	// lua_State的ci字段只想当前的CallInfo调用
 
 	return ci;
