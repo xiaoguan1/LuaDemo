@@ -29,7 +29,7 @@ static void stack_init(struct lua_State* L) {
 	L->ci = &L->base_ci;	// L->ci 指针指向了 L->base_ci 的 CallInfo结构体!!!
 	L->ci->func = L->stack;
 	L->ci->top = L->stack + LUA_MINSTACK;
-	L->ci->previous = L->ci->next = NULL;
+	L->ci->previous = L->ci->next = NULL;	// 相当于L->base_ci->previous = L->base_ci->next = NULL;
 }
 
 // 创建lua_State

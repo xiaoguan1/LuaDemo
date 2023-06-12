@@ -1,5 +1,12 @@
 #include "luado.h"
 
+void luaD_checkstack(struct lua_State* L, int need) {
+	if (L->top + need > L->stack_last){
+		// 现有的栈空间+需要的栈空间 已经大于 限制数量 则进行扩充
+		luaD_growstack(L, need);
+	}
+}
+
 // 拓展lua_State栈空间
 void luaD_growstack(struct lua_State* L, int size) {
 	if (L->stack_size > LUA_MAXSTACK) {
@@ -7,7 +14,7 @@ void luaD_growstack(struct lua_State* L, int size) {
 	}
 
 	int stack_size = L->stack_size * 2;
-	int need_size = cast(int, L->top - L->stack) + size + LUA_EXTRASPACE;
+	int need_size = cast(int, L->top - L->stack) + size + LUA_EXTRASTACK;
 	if (stack_size < need_size) {
 		stack_size = need_size;
 	}
@@ -48,13 +55,6 @@ void luaD_growstack(struct lua_State* L, int size) {
 	}
 }
 
-void luaD_checkstack(struct lua_State* L, int need) {
-	if (L->top + need > L->stack_last){
-		// 现有的栈空间+需要的栈空间 已经大于 限制数量 则进行扩充
-		luaD_growstack(L, need);
-	}
-}
-
 int luaD_call(struct lua_State* L, StkId func, int nresult) {
 	if (++(L->ncalls) > LUA_MAXCALLS) { // lua_State 调用数量检查
 		luaD_throw(L, 0);
@@ -69,17 +69,28 @@ int luaD_call(struct lua_State* L, StkId func, int nresult) {
 }
 
 static struct CallInfo* next_ci(struct lua_State* L, StkId func, int nresult) {
-	struct global_State* g = G(L);
+	struct global_State* g = G(L);	// 没用到
+
+	// 创建CallInfo结构体
 	struct CallInfo* ci;
 	ci = luaM_realloc(L, NULL, 0, sizeof(struct CallInfo));
+
+	// 初始化处理
 	ci->next = NULL;
+
+	/**
+	 * 注意：L->ci 一开始是指向的 L->base_ci（可查看luastate.c的stack_init函数）
+	 * 
+	 * CallInfo结构体之间的关系类似于链表 previous 指向前一个调用，next 指向下一个调用。
+	 **/
 	ci->previous = L->ci;
 	L->ci->next = ci;
+
 	ci->nresult = nresult;
 	ci->callstatus = LUA_OK;
 	ci->func = func;
 	ci->top = L->top + LUA_MINSTACK;
-	L->ci = ci;
+	L->ci = ci;	// lua_State的ci字段只想当前的CallInfo调用
 
 	return ci;
 }
