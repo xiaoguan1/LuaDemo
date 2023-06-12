@@ -55,7 +55,6 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	return L;
 }
 
-#define cast(t, exp) ((t)(exp))
 #define fromstate(L) (cast(LX*, cast(lu_byte*, (L)) - offsetof(LX, l)))
 
 // 回收栈空间

@@ -17,6 +17,10 @@ static int POINTER_SIZE = sizeof(void*);
 #define LUA_ERRMEM 2
 #define LUA_ERRRUN 3
 
+#define cast(t, exp) ((t)(exp))
+#define savestack(L, o) ((o) - (L)->stack)
+#define restorestack(L, o) ((L)->stack + (o))
+
 // basic object type
 #define LUA_TNUMBER 1
 #define LUA_TLIGHTUSERDATA 2
@@ -32,6 +36,8 @@ static int POINTER_SIZE = sizeof(void*);
 #define LUA_MINSTACK 20
 #define LUA_STACKSIZE (2 * LUA_MINSTACK)
 #define LUA_EXTRASTACK 5
+#define LUA_MAXSTACK 15000  // lua_State栈的stack_size最大空间
+#define LUA_ERRORSTACK 200
 #define LUA_MAXCALLS 200
 
 // error tips
