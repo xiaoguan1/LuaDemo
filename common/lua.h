@@ -38,7 +38,9 @@ static int POINTER_SIZE = sizeof(void*);
 #define LUA_EXTRASTACK 5
 #define LUA_MAXSTACK 15000  // lua_State栈的stack_size最大空间
 #define LUA_ERRORSTACK 200
+#define LUA_MULRET -1
 #define LUA_MAXCALLS 200
+
 
 // error tips
 #define LUA_ERROR(L, s) printf("LUA ERROR:%s", s);

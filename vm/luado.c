@@ -98,6 +98,78 @@ static struct CallInfo* next_ci(struct lua_State* L, StkId func, int nresult) {
 	return ci;
 }
 
+/**
+ * 参数first_result：记录第一个返回值在栈中的位置
+ * 参数nresult：指明了实际的返回值数量
+ * 
+ * 
+*/
+int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
+	StkId func = L->ci->func;
+	int nwant = L->ci->nresult;
+
+	switch(nwant) {
+		case 0: {
+			L->top = L->ci->func;
+		} break;
+		case 1:{
+			if (nresult == 0) {
+				first_result->value_.p = NULL;
+				first_result->tt_ = LUA_TNIL;
+			}
+			setobj(func, first_result);
+			first_result->value_.p = NULL;
+			first_result->tt_ = LUA_TNIL;
+
+			L->top = func + nwant;
+		} break;
+		case LUA_MULRET:{
+			int nres = cast(int, L->top - first_result);
+			int i;
+			for (i = 0; i < nres; i++) {
+				StkId current = first_result + i;
+				setobj(func + i, current);
+				current->value_.p = NULL;
+				current->tt_ = LUA_TNIL;
+			}
+			L->top = func + nres;
+		} break;
+		default:
+			if (nwant > nresult) {
+				int i;
+				for (i = 0; i < nwant; i++) {
+					if (i < nresult) {
+						StkId current = first_result + i;
+						setobj(func + i, current);
+						current->value_.p = NULL;
+						current->tt_ = LUA_TNIL;
+					}else{
+						StkId stack = func + i;
+						stack->tt_ = LUA_TNIL;
+					}
+				}
+				L->top = func + nwant;
+			}else{
+				int i;
+				for (i = 0; i < nresult; i++) {
+					if (i < nwant) {
+						StkId current = first_result + i;
+						setobj(func + i, current);
+						current->value_.p = NULL;
+						current->tt_ = LUA_TNIL;
+					}else{
+						StkId stack = func + i;
+						stack->value_.p = NULL;
+						stack->tt_ = LUA_TNIL;
+					}
+				}
+				L->top = func + nresult;
+			} break;
+	}
+		
+	return 0;
+}
+
 int luaD_precall(struct lua_State* L, StkId func, int nresult) {
 	switch (func->tt_) {
 		case LUA_TLCF:{
