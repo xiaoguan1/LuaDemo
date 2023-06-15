@@ -27,6 +27,7 @@ lua_Integer luaL_tointeger(struct lua_State* L, int idx) {
 	return ret;
 }
 
+// 保存调用信息临时数据的一个结构
 typedef struct CallS {
 	StkId func;
 	int nresult;
@@ -38,6 +39,19 @@ static int f_call(lua_State* L, void* ud) {
 	return LUA_OK;
 }
 
-int luaL_pcall() {
+/**
+ * 参数narg表示： 被调用的函数有多少个参数。
+ * 参数nresult表示：期望有多少个返回值。
+*/
+int luaL_pcall(struct lua_State* L, int narg, int nresult) {
+	int status = LUA_OK;
+	CallS c;
 
+	// 通过narg个参数来推断出被调用函数在栈中的位置
+	c.func = L->top - (narg + 1);
+
+	c.nresult = nresult;
+
+	status = luaD_pcall(L, &f_call, &c, savestack(L, L->top), 0);
+	return status;
 }

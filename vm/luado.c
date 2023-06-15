@@ -211,3 +211,46 @@ int luaD_precall(struct lua_State* L, StkId func, int nresult) {
 	}
 	return 0;
 }
+
+#define LUA_TRY(L, c, a) if (_setjmp((c)->b) == 0) { a }
+
+#ifdef _WINDOWS_PLATFORM_
+#define LUA_THROW(c) longjmp((c)->b, 1)
+#else
+#define LUA_THROW(c) _longjmp((c)->b, 1)
+#endif
+
+int luaD_rawrunprotected(struct lua_State* L, Pfunc f, void* ud) {
+
+}
+
+
+int luaD_pcall(struct lua_State* L, Pfunc f, void* ud, ptrdiff_t oldtop, ptrdiff_t ef) {
+	int status;
+	struct CallInfo* old_ci = L->ci;
+	ptrdiff_t old_errorfunc = L->errorfunc;
+
+	status = luaD_rawrunprotected(L, f, ud);
+	if (status != LUA_OK) {
+		struct global_State* g = G(L);
+		struct CallInfo* free_ci = L->ci;	// 当前调用函数
+		while(free_ci) {
+			if (free_ci == old_ci) {
+				free_ci = free_ci->next;
+				continue;
+			}
+
+			struct CallInfo* previous = free_ci->previous;
+			previous->next = NULL;
+
+			struct CallInfo* next = free_ci->next;
+			(*g->frealloc)(g->ud,  free_ci, sizeof(struct CallInfo), 0);
+			free_ci = next;
+		}
+		L->ci = old_ci;
+		L->top = restorestack(L, oldtop);
+		seterrobj(L, status);
+	}
+	L->errorfunc = old_errorfunc;
+	return status;
+}
