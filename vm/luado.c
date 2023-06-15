@@ -91,7 +91,7 @@ static struct CallInfo* next_ci(struct lua_State* L, StkId func, int nresult) {
 	ci->func = func;
 
 	// L->top 的值不能超过 L->ci->top，否则会抛出"stack overflow"的报错，这样做的目的是为了避免溢出!(?????)
-	ci->top = L->top + LUA_MINSTACK;
+	ci->top = L->top + LUA_MINSTACK;	// 给本次调用预留的栈空间
 
 	L->ci = ci;	// lua_State的ci字段只想当前的CallInfo调用
 
@@ -100,31 +100,31 @@ static struct CallInfo* next_ci(struct lua_State* L, StkId func, int nresult) {
 
 /**
  * 参数first_result：记录第一个返回值在栈中的位置
- * 参数nresult：指明了实际的返回值数量
+ * 参数nresult：是“实际的返回数量(返回值)”
  * 
- * 
+ * 变量nwant：是“期望返回数量(返回值)”
 */
 int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
 	StkId func = L->ci->func;
 	int nwant = L->ci->nresult;
 
 	switch(nwant) {
-		case 0: {
+		case 0: {	// 期望返回0个，直接封顶！
 			L->top = L->ci->func;
 		} break;
-		case 1:{
-			if (nresult == 0) {
+		case 1:{	// 期望只返回1个！
+			if (nresult == 0) {// 期望只返回1个,但实际上没有返回。故进行NULL处理。
 				first_result->value_.p = NULL;
 				first_result->tt_ = LUA_TNIL;
 			}
-			setobj(func, first_result);
+			setobj(func, first_result);	// 把first_result 赋值给func
 			first_result->value_.p = NULL;
 			first_result->tt_ = LUA_TNIL;
 
 			L->top = func + nwant;
 		} break;
-		case LUA_MULRET:{
-			int nres = cast(int, L->top - first_result);
+		case LUA_MULRET:{	//
+			int nres = cast(int, L->top - first_result);	// 第一个返回值和栈顶的距离表示返回数量
 			int i;
 			for (i = 0; i < nres; i++) {
 				StkId current = first_result + i;
@@ -135,7 +135,7 @@ int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
 			L->top = func + nres;
 		} break;
 		default:
-			if (nwant > nresult) {
+			if (nwant > nresult) {	// 期望返回数量 > 实际返回数量，按期望返回数量为准！
 				int i;
 				for (i = 0; i < nwant; i++) {
 					if (i < nresult) {
