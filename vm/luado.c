@@ -123,8 +123,8 @@ int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
 
 			L->top = func + nwant;
 		} break;
-		case LUA_MULRET:{	//
-			int nres = cast(int, L->top - first_result);	// 第一个返回值和栈顶的距离表示返回数量
+		case LUA_MULRET:{
+			int nres = cast(int, L->top - first_result);// 第一个返回值和栈顶的距离表示返回数量
 			int i;
 			for (i = 0; i < nres; i++) {
 				StkId current = first_result + i;
@@ -135,7 +135,8 @@ int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
 			L->top = func + nres;
 		} break;
 		default:
-			if (nwant > nresult) {	// 期望返回数量 > 实际返回数量，按期望返回数量为准！
+			if (nwant > nresult) {
+				// 期望返回数量 > 实际返回数量，按期望返回数量为准！
 				int i;
 				for (i = 0; i < nwant; i++) {
 					if (i < nresult) {
@@ -153,11 +154,13 @@ int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
 				int i;
 				for (i = 0; i < nresult; i++) {
 					if (i < nwant) {
+						// 返回数量 小于等于 nwant 数量，正常保存！
 						StkId current = first_result + i;
 						setobj(func + i, current);
 						current->value_.p = NULL;
 						current->tt_ = LUA_TNIL;
 					}else{
+						// 多出的返回数量，进行NULL处理！
 						StkId stack = func + i;
 						stack->value_.p = NULL;
 						stack->tt_ = LUA_TNIL;
@@ -166,8 +169,17 @@ int luaD_poscall(struct lua_State* L, StkId first_result, int nresult) {
 				L->top = func + nresult;
 			} break;
 	}
+
+	// 丢弃掉本次已被调用完的CallInfo
+	struct CallInfo* ci = L->ci;
+	L->ci = ci->previous;			
+	L->ci->next = NULL;
+
+	// 释放掉ci指针的内存空间（luaaux.c的l_alloc函数）
+	struct global_State* g = G(L);
+	(*g->frealloc)(g->ud, ci, sizeof(struct CallInfo), 0);
 		
-	return 0;
+	return LUA_OK;
 }
 
 int luaD_precall(struct lua_State* L, StkId func, int nresult) {
