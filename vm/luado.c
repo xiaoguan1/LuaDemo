@@ -220,8 +220,24 @@ int luaD_precall(struct lua_State* L, StkId func, int nresult) {
 #define LUA_THROW(c) _longjmp((c)->b, 1)
 #endif
 
-int luaD_rawrunprotected(struct lua_State* L, Pfunc f, void* ud) {
+struct lua_longjmp {
+	struct lua_longjmp* previous;
+	jmp_buf b;
+	int status;
+};
 
+int luaD_rawrunprotected(struct lua_State* L, Pfunc f, void* ud) {
+	int old_ncalls = L->ncalls;
+	struct lua_longjmp lj;
+	lj.previous = L->errorjmp;
+	lj.status = LUA_OK;
+	L->errorjmp = &lj;
+
+	LUA_TRY(L, L->errorjmp, (*f)(L, ud));
+
+	L->errorjmp = lj.previous;
+	L->ncalls = old_ncalls;
+	return lj.status;
 }
 
 

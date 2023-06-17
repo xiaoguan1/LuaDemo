@@ -2,6 +2,8 @@
 #define luado.h
 
 #include "../common/luastate.h"
+#include "../common/luamem.h"
+#include <setjmp.h>
 
 typedef int (*Pfunc)(struct lua_State* L, void* ud);    // 函数指针
 

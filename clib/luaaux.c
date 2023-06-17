@@ -1,4 +1,6 @@
 #include "luaaux.h"
+#include "../vm/luado.h"
+
 static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
 	(void)ud;
 	(void)osize;

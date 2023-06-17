@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "luastate.h": "c",
-        "luaobject.h": "c"
+        "luaobject.h": "c",
+        "luado.h": "c",
+        "lua.h": "c",
+        "luamem.h": "c"
     }
 }
