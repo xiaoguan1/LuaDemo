@@ -266,6 +266,7 @@ int luaD_pcall(struct lua_State* L, Pfunc f, void* ud, ptrdiff_t oldtop, ptrdiff
 	ptrdiff_t old_errorfunc = L->errorfunc;
 
 	status = luaD_rawrunprotected(L, f, ud);
+
 	if (status != LUA_OK) {	// 执行f不成功时，则进入。
 		struct global_State* g = G(L);
 		struct CallInfo* free_ci = L->ci;	// 当前调用函数
@@ -275,6 +276,10 @@ int luaD_pcall(struct lua_State* L, Pfunc f, void* ud, ptrdiff_t oldtop, ptrdiff
 				continue;
 			}
 
+			/** 目的操作
+			 *  (前)链表：CallInfo结构体A <--> CallInfo结构体B <--> CallInfo结构体C
+			 *  (后)链表：CallInfo结构体A <--> CallInfo结构体C
+			*/
 			// 相当于free_ci->previous->next = NULL;
 			struct CallInfo* previous = free_ci->previous;
 			previous->next = NULL;
