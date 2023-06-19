@@ -1,10 +1,7 @@
 #include "luado.h"
 
-void luaD_checkstack(struct lua_State* L, int need) {
-	if (L->top + need > L->stack_last){
-		// 现有的栈空间+需要的栈空间 已经大于 限制数量 则进行扩充
-		luaD_growstack(L, need);
-	}
+void seterrobj(struct lua_State* L, int error) {
+	lua_pushinteger(L, error);
 }
 
 // 拓展lua_State栈空间
@@ -52,6 +49,13 @@ void luaD_growstack(struct lua_State* L, int size) {
 		ci->top = restorestack(L, top_diff);
 
 		ci = ci->next;
+	}
+}
+
+void luaD_checkstack(struct lua_State* L, int need) {
+	if (L->top + need > L->stack_last){
+		// 现有的栈空间+需要的栈空间 已经大于 限制数量 则进行扩充
+		luaD_growstack(L, need);
 	}
 }
 
@@ -212,7 +216,7 @@ int luaD_precall(struct lua_State* L, StkId func, int nresult) {
 	return 0;
 }
 
-#define LUA_TRY(L, c, a) if (_setjmp((c)->b) == 0) { a }
+#define LUA_TRY(L, c, a) if (_setjmp((c)->b) == 0) { a; }
 
 #ifdef _WINDOWS_PLATFORM_
 #define LUA_THROW(c) longjmp((c)->b, 1)
@@ -220,6 +224,7 @@ int luaD_precall(struct lua_State* L, StkId func, int nresult) {
 #define LUA_THROW(c) _longjmp((c)->b, 1)
 #endif
 
+// lua_longjmp辅助异常处理(类似try...catch机制)
 struct lua_longjmp {
 	struct lua_longjmp* previous;
 	jmp_buf b;
@@ -228,11 +233,13 @@ struct lua_longjmp {
 
 int luaD_rawrunprotected(struct lua_State* L, Pfunc f, void* ud) {
 	int old_ncalls = L->ncalls;
+
 	struct lua_longjmp lj;
-	lj.previous = L->errorjmp;
+	lj.previous = L->errorjmp;	// previous指针记录前一个还未调用完的lua_longjmp结构
 	lj.status = LUA_OK;
 	L->errorjmp = &lj;
 
+	// 在try...catch中执行f函数(luaaux.c文件中的f_call函数)
 	LUA_TRY(L, L->errorjmp, (*f)(L, ud));
 
 	L->errorjmp = lj.previous;
@@ -240,6 +247,18 @@ int luaD_rawrunprotected(struct lua_State* L, Pfunc f, void* ud) {
 	return lj.status;
 }
 
+void luaD_throw(struct lua_State* L, int error) {
+	struct global_State* g = G(L);
+	if (L->errorjmp) {
+		L->errorjmp->status = error; // 错误状态信息
+		LUA_THROW(L->errorjmp);		 // 执行longjmp 回到setjmp函数执行点
+	}else{
+		if (g->panic)
+			(*g->panic)(L);
+
+		abort();	// 终止程序
+	}
+}
 
 int luaD_pcall(struct lua_State* L, Pfunc f, void* ud, ptrdiff_t oldtop, ptrdiff_t ef) {
 	int status;
@@ -247,7 +266,7 @@ int luaD_pcall(struct lua_State* L, Pfunc f, void* ud, ptrdiff_t oldtop, ptrdiff
 	ptrdiff_t old_errorfunc = L->errorfunc;
 
 	status = luaD_rawrunprotected(L, f, ud);
-	if (status != LUA_OK) {
+	if (status != LUA_OK) {	// 执行f不成功时，则进入。
 		struct global_State* g = G(L);
 		struct CallInfo* free_ci = L->ci;	// 当前调用函数
 		while(free_ci) {
@@ -256,9 +275,11 @@ int luaD_pcall(struct lua_State* L, Pfunc f, void* ud, ptrdiff_t oldtop, ptrdiff
 				continue;
 			}
 
+			// 相当于free_ci->previous->next = NULL;
 			struct CallInfo* previous = free_ci->previous;
 			previous->next = NULL;
 
+			// 回收free_ci指针指向的CallInfo内存，并指向下一个调用。
 			struct CallInfo* next = free_ci->next;
 			(*g->frealloc)(g->ud,  free_ci, sizeof(struct CallInfo), 0);
 			free_ci = next;

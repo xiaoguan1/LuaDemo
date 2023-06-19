@@ -1,4 +1,5 @@
 #include "luastate.h"
+#include "luamem.h"
 
 typedef struct LX {
 	lu_byte extra_[LUA_EXTRASPACE];
@@ -148,12 +149,12 @@ void lua_pushboolean(struct lua_State* L, bool b) {
 }
 
 void lua_pushnil(struct lua_State* L) {
-	setnilvalue(L);
+	setnilvalue(L->top);
 	increate_top(L);
 }
 
 void lua_pushlightuserdata(struct lua_State* L, void* p) {
-	setpvalue(L, p);
+	setpvalue(L->top, p);
 	increate_top(L);
 }
 
@@ -186,8 +187,8 @@ static TValue* index2addr(struct lua_State* L, int idx) {
 		assert(L->ci->func + idx < L->ci->top);
 		return L->ci->func + idx;
 	}else{
-		assert(L->ci->top + idx > L->ci->func);
-		return L->ci->top + idx;
+		assert(L->top + idx > L->ci->func);
+		return L->top + idx;
 	}
 }
 

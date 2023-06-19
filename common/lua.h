@@ -1,6 +1,14 @@
 #ifndef lua_h
 #define lua_h
 
+#include <stdarg.h>
+#include <setjmp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <assert.h>
+
 static int POINTER_SIZE = sizeof(void*);
 
 #if POINTER_SIZE >= 8

@@ -9,7 +9,7 @@ typedef LUA_INTEGER lua_Integer;
 typedef LUA_NUMBER lua_Number;
 typedef unsigned char lu_byte;
 typedef int (*lua_CFunction)(lua_State* L);
-
+typedef void* (*lua_Alloc)(void* ud, void* ptr, size_t osize, size_t nsize);
 
 typedef union lua_Value {
 	void* p;			// light userdata类型变量

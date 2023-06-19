@@ -23,9 +23,47 @@ void luaL_close(struct lua_State* L) {
 	lua_close(L);
 }
 
+void luaL_pushinteger(struct lua_State* L, int integer) {
+    lua_pushinteger(L, integer);
+}
+
+void luaL_pushcfunction(struct lua_State* L, lua_CFunction f) {
+	lua_pushcfunction(L, f);
+}
+
+void luaL_pop(struct lua_State* L) {
+	lua_pop(L);
+}
+
+bool luaL_toboolean(struct lua_State* L, int idx) {
+	lua_pushboolean(L, idx);
+}
+
+void luaL_pushboolean(struct lua_State* L, bool boolean) {
+	lua_pushboolean(L, boolean);
+}
+
+int luaL_stacksize(struct lua_State* L) {
+	return lua_gettop(L);
+}
+
+int luaL_isnil(struct lua_State* L, int idx) {
+	return lua_isnil(L, idx);
+}
+
+void luaL_pushnumber(struct lua_State* L, float number) {
+	lua_pushnumber(L, number);
+}
+
 lua_Integer luaL_tointeger(struct lua_State* L, int idx) {
 	int isnum = 0;
 	lua_Integer ret = lua_tointegerx(L, idx, &isnum);
+	return ret;
+}
+
+lua_Number luaL_tonumber(struct lua_State* L, int idx) {
+	int isnum = 0;
+	lua_Number ret = lua_tonumberx(L, idx, &isnum);
 	return ret;
 }
 
