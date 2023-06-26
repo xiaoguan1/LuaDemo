@@ -18,6 +18,7 @@ struct CallInfo {
 };
 
 typedef struct lua_State {
+	CommonHeader;
 	StkId stack;					// 栈
 	StkId stack_last;				// 从这里开始，栈不能被使用
 	StkId top;						// 栈顶，调用函数时动态改变
@@ -87,5 +88,12 @@ lua_Integer lua_tointegerx(struct lua_State* L, int id, int* isnum);
 lua_Number lua_tonumberx(struct lua_State* L, int idx, int* isnum);
 bool lua_toboolean(struct lua_State* L, int idx);
 int lua_isnil(struct lua_State* L, int idx);
+
+
+union GCUnion {
+	struct GCObject gc;
+	lua_State th;
+};
+
 
 #endif
