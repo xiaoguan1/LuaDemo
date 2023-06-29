@@ -19,5 +19,22 @@
 #define l_setbit(x, b) setbits(x, bitmask(b))
 #define testbit(x, b) testbits(x, bitmask(b))
 
+
+// 颜色
+#define WHITE0BIT 0
+#define WHITE1BIT 1
+#define BLACKBIT 2
+
+// WHITEBITS 相当于 ((1<<0) | (1<<1))
+#define WHITEBITS bit2mask(WHITE0BIT, WHITE1BIT)
+
+#define luaC_white(g) (g->currentwhite & WHITEBITS)
+#define otherwhite(g) (g->currentwhite ^ WHITEBITS)
+
+// 颜色判断
+#define iswhite(o) testbits((0)->marked, WHITEBITS)
+#define isgray(o) (!testbits((o)->masked, bitmask(BLACKBIT) | WHITEBITS))
+#define isblack(o) testbit((o)->masked, bitmask(BLACKBIT))
+
 #endif
 

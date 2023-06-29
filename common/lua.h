@@ -9,6 +9,9 @@
 #include <stddef.h>
 #include <assert.h>
 
+#define lua_assert(c) ((void)0)
+#define check_exp(c, e) (lua_assert(c), e)
+
 static int POINTER_SIZE = sizeof(void*);
 
 #if POINTER_SIZE >= 8
