@@ -23,20 +23,29 @@ struct CallInfo {
 };
 
 typedef struct lua_State {
-	CommonHeader;
+	CommonHeader;					// gc的头部
+
 	StkId stack;					// 栈
 	StkId stack_last;				// 从这里开始，栈不能被使用
 	StkId top;						// 栈顶，调用函数时动态改变
 	int stack_size;					// 栈的整体大小
 	struct lua_longjmp* errorjmp;	// 保护模式中，要用到的结构，当异常抛出时，跳出逻辑
 	int status;						// lua_State的状态
-	struct lua_State* next;			// 下一个lua_State,通常创建协程时会产生
+	// struct lua_State* next;			// 下一个lua_State,通常创建协程时会产生
 	struct lua_State* previous;
 	struct CallInfo base_ci;		// 和lua_State生命周期一致的函数调用信息
 	struct CallInfo* ci;			// 当前运作的CallInfo
+	int nci;
 	struct global_State* l_G;		// global_State指针
 	ptrdiff_t errorfunc;			// 错误函数位于栈的哪个位置
 	int ncalls;						// 进行多少次函数调用
+
+	/**
+	 * 当lua_State对象在gray链表时，它指向gray链表中的下一个灰色对象的地址
+	 * 当lua_State对象在grayagain链表时，它指向grayagain链表中，下一个灰色对象的地址
+	 * 其实就是相当于gray或者grayagain链表中，数据对象的next指针
+	 */
+	struct GCObject* gclist;
 } lua_State;
 
 typedef struct global_State {
