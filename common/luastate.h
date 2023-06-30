@@ -42,7 +42,7 @@ typedef struct lua_State {
 
 	/**
 	 * 当lua_State对象在gray链表时，它指向gray链表中的下一个灰色对象的地址
-	 * 当lua_State对象在grayagain链表时，它指向grayagain链表中，下一个灰色对象的地址
+	 * 当lua_State对象在grayagain链表时，它指向grayagain链表中下一个灰色对象的地址
 	 * 其实就是相当于gray或者grayagain链表中，数据对象的next指针
 	 */
 	struct GCObject* gclist;
@@ -67,6 +67,26 @@ typedef struct global_State {
 	 * panic函数通常是输出一些关键日志。
 	*/
 	lua_CFunction panic;
+
+
+	/** gc的相关字段 **/
+	/**
+	 * 标记gc当前处于那个阶段
+	 * 		阶段分别为：GCSpause、GCSpropagate、GCSatomic、GCSinsideatomic、GCSsweepgc和GCSsweepend
+	*/
+	lu_byte gcstate;
+
+
+	lu_byte currentwhite;
+	struct GCObject* allgc;
+	struct GCObject** sweepgc;
+	struct GCObject* gray;
+	struct GCObject* grayagagin;
+	lu_mem totalbytes;
+	l_mem GCdebt;
+	lu_mem GCmemtray;
+	lu_mem GCestimate;
+	int GCstepmul;
 } global_State;
 
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud);

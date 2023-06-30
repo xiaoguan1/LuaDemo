@@ -32,7 +32,7 @@
 #define otherwhite(g) (g->currentwhite ^ WHITEBITS)
 
 // 颜色判断
-#define iswhite(o) testbits((0)->marked, WHITEBITS)
+#define iswhite(o) testbits((o)->marked, WHITEBITS)
 #define isgray(o) (!testbits((o)->masked, bitmask(BLACKBIT) | WHITEBITS))
 #define isblack(o) testbit((o)->masked, bitmask(BLACKBIT))
 

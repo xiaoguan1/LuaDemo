@@ -56,4 +56,9 @@ static int POINTER_SIZE = sizeof(void*);
 // error tips
 #define LUA_ERROR(L, s) printf("LUA ERROR:%s", s);
 
+
+// mem define
+typedef size_t      lu_mem;
+typedef ptrdiff_t   l_mem;
+
 #endif
