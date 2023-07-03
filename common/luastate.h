@@ -76,16 +76,65 @@ typedef struct global_State {
 	*/
 	lu_byte gcstate;
 
-
+	/**
+	 * 当前gc是哪种白色，10(二进制) 与 01(二进制) 中的一种，在gc的atomic阶段结束时，会从一种切换为另一种。
+	*/
 	lu_byte currentwhite;
+
+	/**
+	 * 这是一个单向链表，所有新建的gc对象，都要放入到这个链表中，放入的方式是直接放在链表的头部。
+	*/
 	struct GCObject* allgc;
+
+	/**
+	 * 这个变量用于记录当前sweep的进度。
+	*/
 	struct GCObject** sweepgc;
+
+	/**
+	 * gc对象，
+	 * 首次从白色被标记为灰色的时候，会被放入这个列表，放入这个列表的gc对象，是准备被propagate的对象。
+	*/
 	struct GCObject* gray;
+
+	/**
+	 * "向后barrier设置" 机制
+	 * 
+	 * 例如：table对象，从黑色变回灰色时，会放入这个链表中。
+	 * 		作用是避免table反复在黑色和灰色之间来回切换重复扫描。
+	*/
 	struct GCObject* grayagagin;
+
+	/**
+	 * 记录开辟内存字节大小的变量之一，真实的大小是totalbytes+GCdebt。
+	*/
 	lu_mem totalbytes;
+
+	/**
+	 * 这是一个可以为负数的变量，主要用于控制gc触发的时机。当GCdebt>0时，才能触发gc流程。
+	*/
 	l_mem GCdebt;
-	lu_mem GCmemtray;
+
+	/**
+	 * 每次进行gc操作时，所遍历的对象字节大小之和，单位是byte，
+	 * 当其值大于单步执行的内存上限时，gc终止！！！
+	*/
+	lu_mem GCmemtrav;
+
+	/**
+	 * GCestimate：在sweep阶段结束时，会被重新计算。本质是totalbytes+GCdebt，
+	 * 作用：
+	 * 		在本轮gc结束时，将自身扩充两倍大小，然后让真实大小减去扩充后的自己得到差debt，
+	 * 		然后totalbytes会等于扩充后的自己，而GCdebt则会被负数debt赋值，
+	 * 		就是是说下一次执行gc流程，要在有|debt|个bytes内存被开辟后，才会开始。
+	 * 
+	 * 目的：避免gc太过频繁。
+	*/
 	lu_mem GCestimate;
+
+	/**
+	 * 一个和GC单次处理多少字节相关的参数。
+	*/
 	int GCstepmul;
 } global_State;
 
