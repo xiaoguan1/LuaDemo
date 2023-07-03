@@ -49,9 +49,7 @@ typedef struct lua_State {
 } lua_State;
 
 typedef struct global_State {
-	/**
-	 * 我们的lua_State其实是lua thread，某种程度上来说，它也是协程
-	*/
+	/** 我们的lua_State其实是lua thread，某种程度上来说，它也是协程 */
 	struct lua_State* mainthread;
 
 	lua_Alloc frealloc;				// 一个可以自定义的内存分配函数
@@ -67,7 +65,6 @@ typedef struct global_State {
 	 * panic函数通常是输出一些关键日志。
 	*/
 	lua_CFunction panic;
-
 
 	/** gc的相关字段 **/
 	/**
@@ -99,7 +96,6 @@ typedef struct global_State {
 
 	/**
 	 * "向后barrier设置" 机制
-	 * 
 	 * 例如：table对象，从黑色变回灰色时，会放入这个链表中。
 	 * 		作用是避免table反复在黑色和灰色之间来回切换重复扫描。
 	*/
@@ -132,9 +128,7 @@ typedef struct global_State {
 	*/
 	lu_mem GCestimate;
 
-	/**
-	 * 一个和GC单次处理多少字节相关的参数。
-	*/
+	/**  一个和GC单次处理多少字节相关的参数。 */
 	int GCstepmul;
 } global_State;
 
