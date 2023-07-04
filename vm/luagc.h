@@ -39,6 +39,9 @@
 #define isgray(o) (!testbits((o)->masked, bitmask(BLACKBIT) | WHITEBITS))
 #define isblack(o) testbit((o)->masked, bitmask(BLACKBIT))
 
+// gc的检查和处理
+#define luaC_condgc(pre, L, pos) if (G(L)->GCdebt > 0) { pre; luaC_step(L); pos; }
+#define luaC_checkgc(L) luaC_condgc(void(0), L, void(0))
 
 #endif
 
