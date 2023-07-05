@@ -24,6 +24,20 @@ static void setpause(struct lua_State* L) {
 	setdebt(L, debt);
 }
 
+static l_mem get_debt(struct lua_State* L) {
+	struct global_State* g = G(L);
+	int setpmul = g->GCstepmul;
+	l_mem debt = g->GCdebt;
+	if(debt <= 0) {
+		return 0;
+	}
+
+	debt = debt / STEPMULADJ + 1;
+	debt = debt >= (MAX_LMEM / STEPMULADJ) ? MAX_LMEM : debt * g->GCstepmul;
+
+	return debt;
+} 
+
 // 标记根
 static void restart_collection(struct lua_State* L) {
 	struct global_State* g = G(L);
@@ -65,7 +79,7 @@ static void propagatemark(struct lua_State* L) {
 }
 
 static void propagateall() {
-	
+
 }
 
 static lu_mem singlestep(struct lua_State* L) {
@@ -139,4 +153,11 @@ void luaC_step(struct lua_State* L) {
 		debt = debt / g->GCstepmul * STEPMULADJ;
 		setdebt(L, debt);
 	}
+}
+
+
+void luaC_freeallobjects(struct lua_State* L) {
+	struct global_State* g = G(L);
+	g->currentwhite = WHITEBITS;
+	sweepwholelist(L, &g->allgc);
 }

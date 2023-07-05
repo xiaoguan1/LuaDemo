@@ -36,8 +36,8 @@
 
 // 颜色判断
 #define iswhite(o) testbits((o)->marked, WHITEBITS)
-#define isgray(o) (!testbits((o)->masked, bitmask(BLACKBIT) | WHITEBITS))
-#define isblack(o) testbit((o)->masked, bitmask(BLACKBIT))
+#define isgray(o) (!testbits((o)->marked, bitmask(BLACKBIT) | WHITEBITS))
+#define isblack(o) testbit((o)->marked, bitmask(BLACKBIT))
 
 // gc的检查和处理
 #define luaC_condgc(pre, L, pos) if (G(L)->GCdebt > 0) { pre; luaC_step(L); pos; }
@@ -56,7 +56,6 @@ struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size);
 void luaC_step(struct lua_State* L);
 void reallymarkobject(struct lua_State* L, struct GCObject* gc);
 void luaC_freeallobjects(struct lua_State* L);
-
 
 #define markobject(L, o) if (iswhite(o)) { reallymarkobject(L, obj2gco(o)); }
 #define markvalue(L, o)  if (iswhite(gcvalue(o))) { reallymarkobject(L, gcvalue(o)); }

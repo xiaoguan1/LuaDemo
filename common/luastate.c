@@ -53,10 +53,10 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	G(L) = g;
 	g->mainthread = L;
 
-	// gc的初始化
-	g->gcstate = GCSpause;
-	g->currentwhite = bitmask(WHITE0BIT);
-	g->totalbytes = sizeof(LG);
+	/** gc的初始化 */
+	g->gcstate = GCSpause;	// gc状态
+	g->currentwhite = bitmask(WHITE0BIT);	// 设置白色
+	g->totalbytes = sizeof(LG);	// 开辟的内存大小（但真实的大小为 totalbytes + GCdebt）
 	g->allgc = NULL;
 	g->sweepgc = NULL;
 	g->grayagagin = NULL;
