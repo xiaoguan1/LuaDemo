@@ -6,6 +6,9 @@
 #define LUA_EXTRASPACE sizeof(void*)
 #define G(L) ((L)->l_G)
 
+#define GCSTEPSIZE		1024	// 1kb
+#define GCPAUSE			100
+
 typedef TValue* StkId;
 
 union GCUnion {
@@ -102,7 +105,7 @@ typedef struct global_State {
 	struct GCObject* grayagagin;
 
 	/**
-	 * 记录开辟内存字节大小的变量之一，真实的大小是totalbytes+GCdebt。
+	 * 记录开辟内存字节大小的变量之一，真实的大小是totalbytes + GCdebt。
 	*/
 	lu_mem totalbytes;
 

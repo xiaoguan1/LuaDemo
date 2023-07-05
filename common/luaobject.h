@@ -19,6 +19,7 @@ typedef void* (*lua_Alloc)(void* ud, void* ptr, size_t osize, size_t nsize);
  * 		marked：用来标记gc对象颜色用的（白、灰、黑）
 */
 #define CommonHeader struct GCObject* next; lu_byte tt_; lu_byte marked
+#define LUA_GCSTEPMUL 200
 
 struct GCObject {
 	CommonHeader;

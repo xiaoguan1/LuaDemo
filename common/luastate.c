@@ -1,5 +1,6 @@
 #include "luastate.h"
 #include "luamem.h"
+#include "../vm/luagc.h"
 
 typedef struct LX {
 	lu_byte extra_[LUA_EXTRASPACE];
@@ -52,7 +53,23 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	G(L) = g;
 	g->mainthread = L;
 
+	// gc的初始化
+	g->gcstate = GCSpause;
+	g->currentwhite = bitmask(WHITE0BIT);
+	g->totalbytes = sizeof(LG);
+	g->allgc = NULL;
+	g->sweepgc = NULL;
+	g->grayagagin = NULL;
+	g->GCdebt = 0;
+	g->GCmemtrav = 0;
+	g->GCestimate = 0;
+	g->GCstepmul = LUA_GCSTEPMUL;
+
+	L->marked = luaC_white(g);
+	L->gclist = NULL;
+
 	stack_init(L);
+
 	return L;
 }
 
@@ -74,12 +91,16 @@ void lua_close(struct lua_State* L) {
 	struct global_State* g = G(L);
 	struct lua_State* L1 = g->mainthread;
 
-	struct CallInfo* ci = &L1->base_ci;
-	while (ci->next) {
-		struct CallInfo* next = ci->next->next;
-		struct CallInfo* free_ci = ci->next;
+	luaC_freeallobjects(L);
 
-		(*g->frealloc)(g->ud, free_ci, sizeof(struct CallInfo), 0);
+	struct CallInfo* base_ci = &L1->base_ci;
+	struct CallInfo* ci = base_ci->next;
+
+	while (ci) {
+		struct CallInfo* next = ci->next;
+		struct CallInfo* free_ci = ci;
+
+		luaM_free(L, free_ci, sizeof(struct CallInfo));
 		ci = next;
 	}
 
