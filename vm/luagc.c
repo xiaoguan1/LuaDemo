@@ -9,6 +9,19 @@
 #define black2gray(o) resetbit((o)->marked, BLACKBIT)
 #define sweepwholelist(L, list) sweeplist(L, list, MAX_LUMEM)
 
+struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
+	struct global_State* g = G(L);
+
+	// GCObject 的初始化操作
+	struct GCObject* obj = (struct GCObject*)luaM_realloc(L, NULL, 0, size);
+	obj->marked = luaC_white(g);
+	obj->next = g->allgc; //标记为白色
+	obj->tt_ = tt_;	//数据类型
+	g->allgc = obj;
+
+	return obj;
+}
+
 static void setdebt(struct lua_State* L, l_mem debt) {
 	struct global_State* g = G(L);
 	lu_mem totalbytes = gettotalbytes(g);
@@ -189,20 +202,6 @@ static lu_mem singlestep(struct lua_State* L) {
 		default: break;
 	}
 	return g->GCmemtrav;
-}
-
-
-struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
-	struct global_State* g = G(L);
-
-	// GCObject 的初始化操作
-	struct GCObject* obj = (struct GCObject*)luaM_realloc(L, NULL, 0, size);
-	obj->marked = luaC_white(g);
-	obj->next = g->allgc; //标记为白色
-	obj->tt_ = tt_;	//数据类型
-	g->allgc = obj;
-
-	retun obj;
 }
 
 void luaC_step(struct lua_State* L) {

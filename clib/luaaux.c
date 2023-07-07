@@ -67,6 +67,14 @@ lua_Number luaL_tonumber(struct lua_State* L, int idx) {
 	return ret;
 }
 
+void luaL_pushnil(struct lua_State* L) {
+	lua_pushnil(L);
+}
+
+TValue* luaL_index2addr(struct lua_State* L, int idx) {
+	return index2addr(L, idx);
+}
+
 // 保存调用信息临时数据的一个结构
 typedef struct CallS {
 	StkId func;

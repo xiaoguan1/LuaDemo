@@ -19,5 +19,7 @@ bool luaL_toboolean(struct lua_State* L, int idx);
 void luaL_pushnumber(struct lua_State* L, float number);
 void luaL_pushboolean(struct lua_State* L, bool boolean);
 int luaL_isnil(struct lua_State* L, int idx);
+void luaL_pushnil(struct lua_State* L);
+TValue* luaL_index2addr(struct lua_State* L, int idx);
 
 #endif

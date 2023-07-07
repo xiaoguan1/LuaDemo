@@ -16,4 +16,6 @@ void p1_test_result10(); // nwant = -1; and nresult > 0;
 void p1_test_nestcall01(); // call count < LUA_MAXCALLS
 void p1_test_nestcall02(); // call count >= LUA_MAXCALLS
 
+void p1_test_main();
+
 #endif 

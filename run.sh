@@ -4,4 +4,4 @@ rm -rf "./bin/dummylua"
 
 make
 
-./bin/dummylua 
+# ./bin/dummylua 

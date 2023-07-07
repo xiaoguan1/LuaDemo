@@ -16,7 +16,7 @@ static void stack_init(struct lua_State* L) {
 	L->stack = (StkId)luaM_realloc(L, NULL, 0, LUA_STACKSIZE * sizeof(TValue));
 	L->stack_size = LUA_STACKSIZE;	
 	L->stack_last = L->stack + LUA_STACKSIZE - LUA_EXTRASTACK;
-	L->next = L->previous = NULL;
+	L->previous = NULL;
 	L->status = LUA_OK;
 	L->errorjmp = NULL;
 	L->top = L->stack;
@@ -203,7 +203,7 @@ void lua_pop(struct lua_State* L) {
 }
 
 // 根据索引获取
-static TValue* index2addr(struct lua_State* L, int idx) {
+TValue* index2addr(struct lua_State* L, int idx) {
 	if (idx >= 0) {
 		assert(L->ci->func + idx < L->ci->top);
 		return L->ci->func + idx;

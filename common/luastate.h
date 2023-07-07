@@ -11,11 +11,6 @@
 
 typedef TValue* StkId;
 
-union GCUnion {
-	struct GCObject gc;
-	lua_State th;
-};
-
 struct CallInfo {
 	StkId func;						// 被调用函数在栈中的位置
 	StkId top;						// 被调用函数的栈顶位置
@@ -138,6 +133,10 @@ typedef struct global_State {
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud);
 void lua_close(struct lua_State* L);
 
+union GCUnion {
+	struct GCObject gc;
+	lua_State th;
+};
 
 void setivalue(StkId target, int integer);			// push int
 void setfvalue(StkId target, lua_CFunction f);		// push light C function
@@ -168,6 +167,6 @@ lua_Integer lua_tointegerx(struct lua_State* L, int id, int* isnum);
 lua_Number lua_tonumberx(struct lua_State* L, int idx, int* isnum);
 bool lua_toboolean(struct lua_State* L, int idx);
 int lua_isnil(struct lua_State* L, int idx);
-
+TValue* index2addr(struct lua_State* L, int idx);
 
 #endif

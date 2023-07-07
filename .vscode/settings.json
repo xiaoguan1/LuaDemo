@@ -4,6 +4,10 @@
         "luaobject.h": "c",
         "luado.h": "c",
         "lua.h": "c",
-        "luamem.h": "c"
+        "luamem.h": "c",
+        "p1_test.h": "c",
+        "luaaux.h": "c",
+        "p2_test.h": "c",
+        "luagc.h": "c"
     }
 }

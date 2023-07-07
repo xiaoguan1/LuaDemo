@@ -42,7 +42,7 @@
 
 // gc的检查和处理
 #define luaC_condgc(pre, L, pos) if (G(L)->GCdebt > 0) { pre; luaC_step(L); pos; }
-#define luaC_checkgc(L) luaC_condgc(void(0), L, void(0))
+#define luaC_checkgc(L) luaC_condgc((void)0, L, (void)0)
 
 // GCState（gc执行时的状态）
 #define GCSpause        0
@@ -52,14 +52,15 @@
 #define GCSsweepallgc   4
 #define GCSsweepend     5
 
+#define markobject(L, o) if (iswhite(o)) { reallymarkobject(L, obj2gco(o)); }
+#define markvalue(L, o)  if (iswhite(gcvalue(o))) { reallymarkobject(L, gcvalue(o)); }
+#define linkgclist(gco, prev) { (gco)->gclist = prev; prev = obj2gco(gco); }
+
+
 /** 函数声明 */
 struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size);
 void luaC_step(struct lua_State* L);
 void reallymarkobject(struct lua_State* L, struct GCObject* gc);
 void luaC_freeallobjects(struct lua_State* L);
-
-#define markobject(L, o) if (iswhite(o)) { reallymarkobject(L, obj2gco(o)); }
-#define markvalue(L, o)  if (iswhite(gcvalue(o))) { reallymarkobject(L, gcvalue(o)); }
-#define linkgclist(gco, prev) { (gco)->gclist = prev; prev = obj2gco(gco); }
 
 #endif
