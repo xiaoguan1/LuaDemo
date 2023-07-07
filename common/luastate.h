@@ -99,7 +99,7 @@ typedef struct global_State {
 	 * 例如：table对象，从黑色变回灰色时，会放入这个链表中。
 	 * 		作用是避免table反复在黑色和灰色之间来回切换重复扫描。
 	*/
-	struct GCObject* grayagagin;
+	struct GCObject* grayagain;
 
 	/**
 	 * 记录开辟内存字节大小的变量之一，真实的大小是totalbytes + GCdebt。

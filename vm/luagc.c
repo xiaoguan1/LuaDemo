@@ -73,7 +73,7 @@ static l_mem get_debt(struct lua_State* L) {
 // 标记根
 static void restart_collection(struct lua_State* L) {
 	struct global_State* g = G(L);
-	g->gray = g->grayagagin = NULL;
+	g->gray = g->grayagain = NULL;
 	markobject(L, g->mainthread);
 }
 
@@ -100,7 +100,7 @@ static void propagatemark(struct lua_State* L) {
 			black2gray(gco);
 			struct lua_State* th = gco2th(gco);
 			g->gray = th->gclist;
-			linkgclist(th, g->grayagagin);
+			linkgclist(th, g->grayagain);
 			size = traversethread(L, th);
 		} break;
 		default:break;
@@ -118,8 +118,8 @@ static void propagateall(struct lua_State* L) {
 
 static void atomic(struct lua_State* L) {
 	struct global_State* g = G(L);
-	g->gray = g->grayagagin;
-	g->grayagagin = NULL;
+	g->gray = g->grayagain;
+	g->grayagain = NULL;
 
 	g->gcstate = GCSinsideatomic;
 	propagateall(L);
@@ -228,11 +228,10 @@ void luaC_step(struct lua_State* L) {
 		l_mem work = singlestep(L);
 		debt -= work;
 	}while(debt > -GCSTEPSIZE && G(L)->gcstate != GCSpause);
-
 	if (G(L)->gcstate == GCSpause) {
 		setpause(L);
 	}else{
-		debt = debt / g->GCstepmul * STEPMULADJ;
+		debt = g->GCdebt / STEPMULADJ * g->GCstepmul;
 		setdebt(L, debt);
 	}
 }

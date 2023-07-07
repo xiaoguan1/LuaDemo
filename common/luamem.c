@@ -7,7 +7,7 @@ void* luaM_realloc(struct lua_State* L, void* ptr, size_t osize, size_t nsize) {
 
     // 先g->frealloc 再 *(g->frealloc)
     void* ret = (*g->frealloc)(g->ud, ptr, oldsize, nsize);
-    if (ret == NULL) {
+    if (ret == NULL && nsize > 0) { // ??? 为什么加了nsize > 0就可以正常跑
         // 内存不足
         luaD_throw(L, LUA_ERRMEM);
     }

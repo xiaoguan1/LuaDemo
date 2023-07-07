@@ -59,7 +59,7 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	g->totalbytes = sizeof(LG);	// 开辟的内存大小（但真实的大小为 totalbytes + GCdebt）
 	g->allgc = NULL;
 	g->sweepgc = NULL;
-	g->grayagagin = NULL;
+	g->grayagain = NULL;
 	g->GCdebt = 0;
 	g->GCmemtrav = 0;
 	g->GCestimate = 0;
