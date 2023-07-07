@@ -6,6 +6,8 @@
 #define LUA_EXTRASPACE sizeof(void*)
 #define G(L) ((L)->l_G)
 
+#define STEPMULADJ 200
+#define GCSTEPMUL 200
 #define GCSTEPSIZE		1024	// 1kb
 #define GCPAUSE			100
 
