@@ -22,6 +22,22 @@ struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
 	return obj;
 }
 
+void reallymarkobject(struct lua_State* L, struct GCObject* gco) {
+    struct global_State* g = G(L);
+    white2gray(gco);
+
+    switch(gco->tt_) {
+        case LUA_TTHREAD:{
+            linkgclist(gco2th(gco), g->gray);            
+        } break;
+        case LUA_TSTRING:{ // just for gc test now
+            gray2black(gco);
+            g->GCmemtrav += sizeof(struct TString);
+        } break;
+        default:break;
+    }
+}
+
 static void setdebt(struct lua_State* L, l_mem debt) {
 	struct global_State* g = G(L);
 	lu_mem totalbytes = gettotalbytes(g);

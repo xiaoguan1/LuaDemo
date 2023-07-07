@@ -40,10 +40,6 @@
 #define isblack(o) testbit((o)->marked, bitmask(BLACKBIT))
 #define isdeadm(ow, m) (!((m ^ WHITEBITS) & (ow)))
 
-// gc的检查和处理
-#define luaC_condgc(pre, L, pos) if (G(L)->GCdebt > 0) { pre; luaC_step(L); pos; }
-#define luaC_checkgc(L) luaC_condgc((void)0, L, (void)0)
-
 // GCState（gc执行时的状态）
 #define GCSpause        0
 #define GCSpropagate    1
@@ -62,5 +58,9 @@ struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size);
 void luaC_step(struct lua_State* L);
 void reallymarkobject(struct lua_State* L, struct GCObject* gc);
 void luaC_freeallobjects(struct lua_State* L);
+
+// gc的检查和处理
+#define luaC_condgc(pre, L, pos) if (G(L)->GCdebt > 0) { pre; luaC_step(L); pos; }
+#define luaC_checkgc(L) luaC_condgc((void)0, L, (void)0)
 
 #endif
