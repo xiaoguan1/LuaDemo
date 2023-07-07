@@ -52,5 +52,9 @@ typedef struct lua_TValue {
 #define LUA_LNGSTR (LUA_TSTRING | (0 << 4))	// 十进制数值：4
 #define LUA_SHRSTR (LUA_TSTRING | (1 << 4))	// 十进制数值：20
 
-#endif
+typedef struct TString {
+	int test_field1;
+	int test_field2;
+} TString;
 
+#endif

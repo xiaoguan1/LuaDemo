@@ -1,11 +1,13 @@
 #include "luagc.h"
 #include "../common/luamem.h"
 
+#define GCMAXSWEEPGCO 25
+
 #define gettotalbytes(g) (g->totalbytes + g->GCdebt)
 #define white2gray(o) resetbit((o)->marked, WHITEBITS)
 #define gray2black(o) l_setbit((o)->marked, BLACKBIT)
 #define black2gray(o) resetbit((o)->marked, BLACKBIT)
-#define sweepwholelist(L, list) sweepstep(L, list, MAX_LUMEM)
+#define sweepwholelist(L, list) sweeplist(L, list, MAX_LUMEM)
 
 static void setdebt(struct lua_State* L, l_mem debt) {
 	struct global_State* g = G(L);
@@ -15,6 +17,7 @@ static void setdebt(struct lua_State* L, l_mem debt) {
 	g->GCdebt = debt;
 }
 
+//当内存是当前估计值的两倍时，将触发gc
 static void setpause(struct lua_State* L) {
 	struct global_State* g = G(L);
 	l_mem estimate = g->GCestimate / GCPAUSE;
@@ -54,7 +57,6 @@ static lu_mem traversethread(struct lua_State* L, struct lua_State* th) {
 	return sizeof(struct lua_State) + sizeof(TValue) * th->stack_size + sizeof(struct CallInfo) * th->nci;
 }
 
-
 static void propagatemark(struct lua_State* L) {
 	struct global_State* g = G(L);
 	if (!g->gray) {
@@ -78,8 +80,73 @@ static void propagatemark(struct lua_State* L) {
 	g->GCmemtrav += size;
 }
 
-static void propagateall() {
+static void propagateall(struct lua_State* L) {
+	struct global_State* g = G(L);
+	while(g->gray) {
+		propagateall(L);
+	}
+}
 
+static void atomic(struct lua_State* L) {
+	struct global_State* g = G(L);
+	g->gray = g->grayagagin;
+	g->grayagagin = NULL;
+
+	g->gcstate = GCSinsideatomic;
+	propagateall(L);
+	g->currentwhite = cast(lu_byte, otherwhite(g));
+}
+
+static lu_mem freeobj (struct lua_State* L, struct GCObject* gco) {
+	switch (gco->tt_) {
+		case LUA_TSTRING: {
+			lu_mem sz = sizeof(TString);
+			luaM_free(L, gco, sz);
+			return sz;
+		} break;
+		default: {
+			lua_assert(0);
+		} break;
+	}
+}
+
+static struct GCObject** sweeplist(struct lua_State* L, struct GCObject** p, size_t count) {
+	struct global_State* g = G(L);
+	lu_byte ow = otherwhite(g);
+	while (*p != NULL && count > 0) {
+		lu_byte marked = (*p)->marked;
+		if (isdeadm(ow, marked)) {
+			struct GCObject* gco = *p;
+			*p = (*p)->next;
+			g->GCmemtrav += freeobj(L, gco);
+		}else{
+			(*p)->marked &= cast(lu_byte, ~(bitmask(BLACKBIT) | WHITEBITS));
+			(*p)->marked |= luaC_white(g);
+			p = &((*p)->next);
+		}
+		count--;
+	}
+	return (*p) == NULL ? NULL : p;
+}
+
+static void entersweep(struct lua_State* L) {
+	struct global_State* g = G(L);
+	g->gcstate = GCSsweepallgc;
+	g->sweepgc = sweeplist(L, &g->allgc, 1);
+}
+
+static void sweepstep(struct lua_State* L) {
+	struct global_State* g = G(L);
+	if (g->sweepgc) {
+		g->sweepgc = sweeplist(L, g->sweepgc, GCMAXSWEEPGCO);
+		g->GCestimate = gettotalbytes(g);
+
+		if (g->sweepgc) {
+			return;
+		}
+	}
+	g->gcstate = GCSsweepend;
+	g->sweepgc = NULL;
 }
 
 static lu_mem singlestep(struct lua_State* L) {
@@ -154,7 +221,6 @@ void luaC_step(struct lua_State* L) {
 		setdebt(L, debt);
 	}
 }
-
 
 void luaC_freeallobjects(struct lua_State* L) {
 	struct global_State* g = G(L);
