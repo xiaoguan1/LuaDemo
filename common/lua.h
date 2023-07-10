@@ -58,7 +58,7 @@ static int POINTER_SIZE = sizeof(void*);
 
 
 // mem define
-typedef size_t      lu_mem;
+typedef size_t      lu_mem; // 32位 typedef unsigned int size_t; | 
 typedef ptrdiff_t   l_mem;
 
 #define MAX_LUMEM ((lu_mem)(~(lu_mem)0))
