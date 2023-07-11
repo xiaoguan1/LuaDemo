@@ -4,8 +4,12 @@
 
 #include "../common/luastate.h"
 
+// lua_State 转换为 GCObject(本质上就是CommonHeader 宏)
 #define obj2gco(o) (&cast(union GCUnion*, o)->gc)
+
+// GCObject(本质上就是CommonHeader 宏) 转换为 lua_State
 #define gco2th(o) check_exp((o)->tt_ == LUA_TTHREAD, &cast(union GCUnion*, o)->th)
+
 #define gcvalue(o) ((o)->value_.gc)
 
 // Bit operation
