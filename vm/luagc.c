@@ -28,7 +28,7 @@ void reallymarkobject(struct lua_State* L, struct GCObject* gco) {
 
     switch(gco->tt_) {
         case LUA_TTHREAD:{
-            linkgclist(gco2th(gco), g->gray);            
+            linkgclist(gco2th(gco), g->gray);
         } break;
         case LUA_TSTRING:{ // just for gc test now
             gray2black(gco);
@@ -60,13 +60,13 @@ static l_mem get_debt(struct lua_State* L) {
 	struct global_State* g = G(L);
 	int setpmul = g->GCstepmul;
 	l_mem debt = g->GCdebt;
+
 	if(debt <= 0) {
 		return 0;
 	}
 
 	debt = debt / STEPMULADJ + 1;
 	debt = debt >= (MAX_LMEM / STEPMULADJ) ? MAX_LMEM : debt * g->GCstepmul;
-
 	return debt;
 } 
 
@@ -112,7 +112,7 @@ static void propagatemark(struct lua_State* L) {
 static void propagateall(struct lua_State* L) {
 	struct global_State* g = G(L);
 	while(g->gray) {
-		propagateall(L);
+		propagatemark(L);
 	}
 }
 

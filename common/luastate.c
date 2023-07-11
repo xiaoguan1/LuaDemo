@@ -28,7 +28,9 @@ static void stack_init(struct lua_State* L) {
 	}
 	L->top ++;
 
-	L->ci = &L->base_ci;	// L->ci 指针指向了 L->base_ci 的 CallInfo结构体!!!
+	//L->ci 指向 &L->base_ci，本质上L->ci 就是 L->base_ci 
+	L->ci = &L->base_ci;
+
 	L->ci->func = L->stack;
 	L->ci->top = L->stack + LUA_MINSTACK;
 	L->ci->previous = L->ci->next = NULL;	// 相当于L->base_ci->previous = L->base_ci->next = NULL;
@@ -50,6 +52,7 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	g->panic = NULL;
 
 	L = &lg->l.l;
+	L->nci = 0;
 	G(L) = g;
 	g->mainthread = L;
 
@@ -59,14 +62,16 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	g->totalbytes = sizeof(LG);	// 开辟的内存大小（但真实的大小为 totalbytes + GCdebt）
 	g->allgc = NULL;
 	g->sweepgc = NULL;
+	g->gray = NULL;
 	g->grayagain = NULL;
 	g->GCdebt = 0;
 	g->GCmemtrav = 0;
 	g->GCestimate = 0;
-	g->GCstepmul = LUA_GCSTEPMUL;
+	g->GCstepmul = LUA_GCSTEPMUL;	// 一次处理 LUA_GCSTEPMUL 多个字节
 
 	L->marked = luaC_white(g);
 	L->gclist = NULL;
+	L->tt_ = LUA_TTHREAD;
 
 	stack_init(L);
 
@@ -79,8 +84,7 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 static void free_stack(struct lua_State* L) {
 	global_State* g = G(L);
 
-	// 先g->frealloc 再 *(g->frealloc)
-	(*g->frealloc)(g->ud, L->stack, sizeof(TValue), 0);
+	luaM_free(L, L->stack, sizeof(TValue));
 
 	L->stack = L->stack_last = L->top = NULL;
 	L->stack_size = 0;
@@ -89,7 +93,7 @@ static void free_stack(struct lua_State* L) {
 // 回收lua_State
 void lua_close(struct lua_State* L) {
 	struct global_State* g = G(L);
-	struct lua_State* L1 = g->mainthread;
+	struct lua_State* L1 = g->mainthread; // 只有主线程可以关闭
 
 	luaC_freeallobjects(L);
 

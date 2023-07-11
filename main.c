@@ -43,12 +43,12 @@ int main(int argc, char** argv) {
 		luaL_pushnil(L);
 	}
 
-	int start_time = time(NULL);
-	int end_time = time(NULL);
+	time_t start_time = time(NULL);
+	time_t end_time = time(NULL);
 	size_t max_bytes = 0;
 	struct global_State* g = G(L);
 	int j = 0;
-	for (; j < 500000000; j ++) {
+	for (; j < 50000; j ++) {
 		TValue* o = luaL_index2addr(L, (j % ELEMENTNUM) + 1);
 		struct GCObject* gco = luaC_newobj(L, LUA_TSTRING, sizeof(TString));
 		o->value_.gc = gco;
