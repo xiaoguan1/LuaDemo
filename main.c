@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 	size_t max_bytes = 0;
 	struct global_State* g = G(L);
 	int j = 0;
-	for (; j < 50000; j ++) {
+	for (; j < 1; j ++) {
 		TValue* o = luaL_index2addr(L, (j % ELEMENTNUM) + 1);
 		struct GCObject* gco = luaC_newobj(L, LUA_TSTRING, sizeof(TString));
 		o->value_.gc = gco;

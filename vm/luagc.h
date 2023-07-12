@@ -4,7 +4,13 @@
 
 #include "../common/luastate.h"
 
-// lua_State 转换为 GCObject(本质上就是CommonHeader 宏)
+/**
+ * lua_State 转换为 GCObject(本质上就是CommonHeader 宏)
+ * 注释：
+ * 		本质上就是获取 lua_State继承过来的 CommonHeader 宏
+ * 		CommonHeader宏 在创建lua_State时有对其进行初始化
+ * 		GCUnion联合体只是转化的中间介质
+*/
 #define obj2gco(o) (&cast(union GCUnion*, o)->gc)
 
 // GCObject(本质上就是CommonHeader 宏) 转换为 lua_State
@@ -25,9 +31,9 @@
 
 
 // 颜色（移位符、搭配bitmask宏使用）
-#define WHITE0BIT 0     // 0000 0001 白色
-#define WHITE1BIT 1     // 0000 0010 白色
-#define BLACKBIT 2      // 0000 0100 黑色
+#define WHITE0BIT 0     // bitmask(WHITE0BIT) 为 0000 0001 白色
+#define WHITE1BIT 1     // bitmask(WHITE1BIT) 为 0000 0010 白色
+#define BLACKBIT 2      // bitmask(BLACKBIT)  为 0000 0100 黑色
 
 // WHITEBITS 相当于 ((1<<0) | (1<<1))
 #define WHITEBITS bit2mask(WHITE0BIT, WHITE1BIT)
@@ -62,8 +68,19 @@
 
 #define markobject(L, o) if (iswhite(o)) { reallymarkobject(L, obj2gco(o)); }
 #define markvalue(L, o)  if (iscollectable(o) && iswhite(gcvalue(o))) { reallymarkobject(L, gcvalue(o)); }
-#define linkgclist(gco, prev) { (gco)->gclist = prev; prev = obj2gco(gco); }
 
+/**
+ * global_State 简称 g
+ * lua_State 简称 L
+ * 		prev 本质上是 g 中的 gay或者grayagain 字段
+ * 
+ * 		用途：
+ * 			lua_State的gclist 挂载 g->gay 或者 g->grayagain
+ * 			g->gay 或者 g->grayagain 挂载 L的 CommonHeader宏
+ * 
+ * 		作用：构建灰色链表？
+*/
+#define linkgclist(L, prev) { L->gclist = prev; prev = obj2gco(L); }
 
 /** 函数声明 */
 struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size);

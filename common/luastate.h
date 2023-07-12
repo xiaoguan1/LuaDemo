@@ -135,6 +135,7 @@ typedef struct global_State {
 struct lua_State* lua_newstate(lua_Alloc alloc, void* ud);
 void lua_close(struct lua_State* L);
 
+// 作用：中间介质 起到 GCObject 和 lua_State 相互转换
 union GCUnion {
 	struct GCObject gc;
 	lua_State th;

@@ -68,9 +68,10 @@ struct lua_State* lua_newstate(lua_Alloc alloc, void* ud){
 	g->GCmemtrav = 0;
 	g->GCestimate = 0;
 	g->GCstepmul = LUA_GCSTEPMUL;	// 一次处理 LUA_GCSTEPMUL 多个字节
-
-	L->marked = luaC_white(g);
 	L->gclist = NULL;
+
+	// 对lua_State中的CommonHeader宏进行初始化（CommonHeader宏包含三个字段）
+	L->marked = luaC_white(g);
 	L->tt_ = LUA_TTHREAD;
 
 	stack_init(L);

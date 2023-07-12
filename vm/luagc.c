@@ -3,10 +3,12 @@
 
 #define GCMAXSWEEPGCO 25
 
+// 灰色的数值是0
+#define white2gray(o) resetbits((o)->marked, WHITEBITS)	// 白色转灰色
+#define gray2black(o) l_setbit((o)->marked, BLACKBIT)	// 灰色转黑色
+#define black2gray(o) resetbit((o)->marked, BLACKBIT)	// 黑色转灰色
+
 #define gettotalbytes(g) (g->totalbytes + g->GCdebt)
-#define white2gray(o) resetbit((o)->marked, WHITEBITS)
-#define gray2black(o) l_setbit((o)->marked, BLACKBIT)
-#define black2gray(o) resetbit((o)->marked, BLACKBIT)
 #define sweepwholelist(L, list) sweeplist(L, list, MAX_LUMEM)
 
 struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
