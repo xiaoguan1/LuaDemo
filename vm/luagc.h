@@ -45,9 +45,22 @@
 #define otherwhite(g) (g->currentwhite ^ WHITEBITS)
 
 // 颜色判断
+/**判断是否为白色，因为白色有两种：0000 0001 和 0000 0010
+ * WHITEBITS是这两种白色的或运算结果（0000 0011）
+ * 所以如果 (o)->marked 是白色的话，进行与运算(&) 一定是 大于0。故为true！
+*/
 #define iswhite(o) testbits((o)->marked, WHITEBITS)
+
+/**判断是否为灰色，因为灰色就一种：0000 0000，也就是数值0。
+ * bitmask(BLACKBIT) | WHITEBITS) 黑色和白色的或运算 0000 0100 | 0000 0011 = 0000 0111
+ * 如果 testbits((o)->marked, bitmask(BLACKBIT) | WHITEBITS) 为false，则表示既不是黑色也不是白色。那就是灰色！
+*/
 #define isgray(o) (!testbits((o)->marked, bitmask(BLACKBIT) | WHITEBITS))
+
+/**判断是否为黑色，其思路和iswhite宏一样*/
 #define isblack(o) testbit((o)->marked, bitmask(BLACKBIT))
+
+
 #define isdeadm(ow, m) (!((m ^ WHITEBITS) & (ow)))
 
 // GCState（gc执行时的状态）

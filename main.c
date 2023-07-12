@@ -56,6 +56,8 @@ int main(int argc, char** argv) {
 		TValue* o = luaL_index2addr(L, (j % ELEMENTNUM) + 1);
 		o->value_.gc = gco;
 		o->tt_ = LUA_TSTRING;
+
+		// gc机制检查
 		luaC_checkgc(L);
 
 		if ((g->totalbytes + g->GCdebt) > max_bytes) {

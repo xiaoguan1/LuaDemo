@@ -60,15 +60,17 @@ static void setpause(struct lua_State* L) {
 	setdebt(L, debt);
 }
 
+// 返回要gc的字节数量
 static l_mem get_debt(struct lua_State* L) {
 	struct global_State* g = G(L);
-	int setpmul = g->GCstepmul;
 	l_mem debt = g->GCdebt;
 
 	if(debt <= 0) {
 		return 0;
 	}
 
+	// 注意：+ 1， 是为了防止 debt / STEPMULADJ 是0~1之间的数，然后被int截断得到0！
+	// 换个角度想，一次gc至少处理200字节，但至多处理MAX_LMEM字节。
 	debt = debt / STEPMULADJ + 1;
 	debt = debt >= (MAX_LMEM / STEPMULADJ) ? MAX_LMEM : debt * g->GCstepmul;
 	return debt;
@@ -77,7 +79,11 @@ static l_mem get_debt(struct lua_State* L) {
 // 标记根
 static void restart_collection(struct lua_State* L) {
 	struct global_State* g = G(L);
+
+	// 重置gray和grayagain链表
 	g->gray = g->grayagain = NULL;
+
+	// g->mainthread 主线程的lua_State，目的暂不清楚！
 	markobject(L, g->mainthread);
 }
 

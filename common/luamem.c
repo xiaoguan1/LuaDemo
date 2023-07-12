@@ -4,7 +4,9 @@
 /**
  * g->frealloc 是 luaaux.c中的 l_alloc 函数，专门开辟和销毁内存空间！
  * 
- * 注释：global_State中的GCdebt，当大于0时会触发gc机制！
+ * 注释：
+ *  global_State中的GCdebt，当大于0时会触发gc机制！
+ *  sizeof 返回的是字节数，例：sizeof(int) 返回4 表示4个字节
 */
 // 在g->frealloc的基础上进行封装
 void* luaM_realloc(struct lua_State* L, void* ptr, size_t osize, size_t nsize) {
@@ -18,6 +20,7 @@ void* luaM_realloc(struct lua_State* L, void* ptr, size_t osize, size_t nsize) {
         luaD_throw(L, LUA_ERRMEM);
     }
 
+    // 记录字节数
     g->GCdebt = g->GCdebt - oldsize + nsize;
     return ret;
 }
