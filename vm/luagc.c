@@ -26,11 +26,11 @@ struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
 
 void reallymarkobject(struct lua_State* L, struct GCObject* gco) {
     struct global_State* g = G(L);
-    white2gray(gco);
+    white2gray(gco); // 把主线程lua_State的marked颜色从白色变为灰色
 
     switch(gco->tt_) {
         case LUA_TTHREAD:{
-            linkgclist(gco2th(gco), g->gray);
+            linkgclist(gco2th(gco), g->gray); // 构建灰色链表
         } break;
         case LUA_TSTRING:{ // just for gc test now
             gray2black(gco);
@@ -90,9 +90,10 @@ static lu_mem traversethread(struct lua_State* L, struct lua_State* th) {
 
 static void propagatemark(struct lua_State* L) {
 	struct global_State* g = G(L);
-	if (!g->gray) {
+
+	if (!g->gray)
 		return;
-	}
+
 	struct GCObject* gco = g->gray;
 	gray2black(gco);
 	lu_mem size = 0;
