@@ -63,6 +63,30 @@
 
 #define isdeadm(ow, m) (!((m ^ WHITEBITS) & (ow)))
 
+
+// 颜色转换
+/**白色转灰色（前提条件 o->marked是白色）
+ * 对bitmask(WHITEBITS)进行非操作 (lu_byte)(~bitmask(WHITEBITS)) 得到 1111 1100
+ * (o)->marked 和 (lu_byte)(~WHITEBITS) 进行与运算，得出的结果为0！
+ * 注释:灰色为0
+*/
+#define white2gray(o) resetbits((o)->marked, WHITEBITS)	// 白色转灰色
+
+/**灰色转黑色（前提条件 o->marked是灰色）
+ * bitmask(BLACKBIT) 得到 0000 0100 （黑色为4）
+ * (o)->marked 和 bitmask(BLACKBIT) 进行或运算，即可得到黑色！
+*/
+#define gray2black(o) l_setbit((o)->marked, BLACKBIT)	// 灰色转黑色
+
+/**黑色转灰色（前提条件 o->marked是黑色）
+ * 对bitmask(BLACKBIT)进行非操作 (lu_byte)(~bitmask(BLACKBIT)) 得到 1111 1011
+ * (o)->marked 和 (lu_byte)(~bitmask(BLACKBIT)) 进行与运算，得出的结果为0！
+ * 
+ * 注释：black2gray宏 和 white2gray宏 的思路是一样的!
+*/
+#define black2gray(o) resetbit((o)->marked, BLACKBIT)	// 黑色转灰色
+
+
 // GCState（gc执行时的状态）
 #define GCSpause        0
 #define GCSpropagate    1
