@@ -49,8 +49,11 @@ int main(int argc, char** argv) {
 	struct global_State* g = G(L);
 	int j = 0;
 	for (; j < 1; j ++) {
-		TValue* o = luaL_index2addr(L, (j % ELEMENTNUM) + 1);
+		// 创建gc对象
 		struct GCObject* gco = luaC_newobj(L, LUA_TSTRING, sizeof(TString));
+
+		// 把gc对象插入TValue中
+		TValue* o = luaL_index2addr(L, (j % ELEMENTNUM) + 1);
 		o->value_.gc = gco;
 		o->tt_ = LUA_TSTRING;
 		luaC_checkgc(L);

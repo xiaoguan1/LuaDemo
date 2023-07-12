@@ -14,11 +14,13 @@
 struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
 	struct global_State* g = G(L);
 
-	// GCObject 的初始化操作
+	// GCObject 的初始化操作(创建gc对象)
 	struct GCObject* obj = (struct GCObject*)luaM_realloc(L, NULL, 0, size);
-	obj->marked = luaC_white(g);
-	obj->next = g->allgc; //标记为白色
+	obj->marked = luaC_white(g); //标记为白色
 	obj->tt_ = tt_;	//数据类型
+
+	/** 以头插法的方式，将新创建的元素插入到allgc单链表里面 */
+	obj->next = g->allgc;
 	g->allgc = obj;
 
 	return obj;
@@ -81,7 +83,7 @@ static void restart_collection(struct lua_State* L) {
 
 static lu_mem traversethread(struct lua_State* L, struct lua_State* th) {
 	TValue* o = th->stack;
-	for (; o < th->top; o++) {
+	for (; o < th->top; o++) {	// 目前o->tt_ 类型是string 或者 nil
 		markvalue(L, o);
 	}
 
@@ -95,12 +97,11 @@ static void propagatemark(struct lua_State* L) {
 		return;
 
 	struct GCObject* gco = g->gray;
-	gray2black(gco);
+	gray2black(gco);	// 主线程lua_State从灰色变为黑色
 	lu_mem size = 0;
-
 	switch (gco->tt_) {
 		case LUA_TTHREAD:{
-			black2gray(gco);
+			black2gray(gco); // 主线程lua_State从黑色变为灰色
 			struct lua_State* th = gco2th(gco);
 			g->gray = th->gclist;
 			linkgclist(th, g->grayagain);
@@ -108,7 +109,6 @@ static void propagatemark(struct lua_State* L) {
 		} break;
 		default:break;
 	}
-
 	g->GCmemtrav += size;
 }
 
