@@ -27,7 +27,13 @@ void reallymarkobject(struct lua_State* L, struct GCObject* gco) {
 
     switch(gco->tt_) {
         case LUA_TTHREAD:{
-            linkgclist(gco2th(gco), g->gray); // 构建灰色链表
+			/**
+			 * 因为主线程lua_State第一次从白色标记为灰色，故把主线程lua_State拉入global_State的gray里面！
+			 * 此外 因为GCObject 和 lua_State 可以相互转换[gco2th宏 和 obj2gco宏]
+			 * 
+			 * 所以g->gray指向lua_State的CommonHeader(即GCObject)
+			 * */
+            linkgclist(gco2th(gco), g->gray);
         } break;
         case LUA_TSTRING:{ // just for gc test now
             gray2black(gco);
@@ -100,6 +106,7 @@ static void propagatemark(struct lua_State* L) {
 	struct GCObject* gco = g->gray;
 	gray2black(gco);	// 主线程lua_State从灰色变为黑色
 	lu_mem size = 0;
+
 	switch (gco->tt_) {
 		case LUA_TTHREAD:{
 			black2gray(gco); // 主线程lua_State从黑色变为灰色
@@ -187,12 +194,14 @@ static lu_mem singlestep(struct lua_State* L) {
 	switch (g->gcstate) {
 		case GCSpause: {
 			g->GCmemtrav = 0;
+			// markroot阶段，将lua_State标记为灰色，并push到gray列表中
 			restart_collection(L);
 			g->gcstate = GCSpropagate;
 			return g->GCmemtrav;
 		} break;
 		case GCSpropagate: {
 			g->GCmemtrav = 0;
+			// 从gray列表中，pop出一个对象，并标记为黑色，同时扫描其关联对象，设置为灰色并放入gray列表。
 			propagatemark(L);
 			if (g->gray == NULL) {
 				g->gcstate = GCSatomic;

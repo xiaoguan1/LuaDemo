@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 	size_t max_bytes = 0;
 	struct global_State* g = G(L);
 	int j = 0;
-	for (; j < 1; j ++) {
+	for (; j < 2; j ++) {
 		// 创建gc对象
 		struct GCObject* gco = luaC_newobj(L, LUA_TSTRING, sizeof(TString));
 

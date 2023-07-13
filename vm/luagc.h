@@ -16,6 +16,9 @@
 // GCObject(本质上就是CommonHeader 宏) 转换为 lua_State
 #define gco2th(o) check_exp((o)->tt_ == LUA_TTHREAD, &cast(union GCUnion*, o)->th)
 
+/**o是TValue结构体，从TValue结构体中获取Value.gc字段。
+ * value.gc字段 本质上就是 CommonHeader gc头部
+*/
 #define gcvalue(o) ((o)->value_.gc)
 
 // Bit operation
