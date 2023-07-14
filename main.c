@@ -48,14 +48,14 @@ int main(int argc, char** argv) {
 	size_t max_bytes = 0;
 	struct global_State* g = G(L);
 	int j = 0;
-	for (; j < 2; j ++) {
+	for (; j < 1; j ++) {
 		// 创建gc对象
 		struct GCObject* gco = luaC_newobj(L, LUA_TSTRING, sizeof(TString));
 
 		// 把gc对象插入TValue中
 		TValue* o = luaL_index2addr(L, (j % ELEMENTNUM) + 1);
 		o->value_.gc = gco;
-		o->tt_ = LUA_TSTRING;
+		o->tt_ = LUA_TSTRING;	// 疑问点：向 ELEMENTNUM 数量的TValue插入nil，但是类型标注为string？（空字符串？）
 
 		// gc机制检查
 		luaC_checkgc(L);

@@ -14,7 +14,10 @@ struct GCObject* luaC_newobj(struct lua_State* L, int tt_, size_t size) {
 	obj->marked = luaC_white(g); //标记为白色
 	obj->tt_ = tt_;	//数据类型
 
-	/** 以头插法的方式，将新创建的元素插入到allgc单链表里面 */
+	/**
+	 * 以头插法的方式，将新创建的元素插入到g->allgc单链表里面
+	 * 此外所有在这里产生的元素都会进入这个gc对列。方便gc机制检查
+	 */
 	obj->next = g->allgc;
 	g->allgc = obj;
 
@@ -90,7 +93,12 @@ static void restart_collection(struct lua_State* L) {
 
 static lu_mem traversethread(struct lua_State* L, struct lua_State* th) {
 	TValue* o = th->stack;
-	for (; o < th->top; o++) {	// 目前o->tt_ 类型是string 或者 nil
+
+	/**
+	 * 遍历lua_State的stack元素（白色->灰色->黑色）
+	 * 注释 目前o->tt_ 类型是string 或者 nil
+	 * */
+	for (; o < th->top; o++) {
 		markvalue(L, o);
 	}
 
@@ -122,6 +130,7 @@ static void propagatemark(struct lua_State* L) {
 
 static void propagateall(struct lua_State* L) {
 	struct global_State* g = G(L);
+	// 便利灰色链表，并在此变成黑色!
 	while(g->gray) {
 		propagatemark(L);
 	}
@@ -134,9 +143,10 @@ static void atomic(struct lua_State* L) {
 
 	g->gcstate = GCSinsideatomic;
 	propagateall(L);
-	g->currentwhite = cast(lu_byte, otherwhite(g));
+	g->currentwhite = cast(lu_byte, otherwhite(g)); // 转换成另一种白色
 }
 
+// 释放内存
 static lu_mem freeobj (struct lua_State* L, struct GCObject* gco) {
 	switch (gco->tt_) {
 		case LUA_TSTRING: {
@@ -155,7 +165,7 @@ static struct GCObject** sweeplist(struct lua_State* L, struct GCObject** p, siz
 	lu_byte ow = otherwhite(g);
 	while (*p != NULL && count > 0) {
 		lu_byte marked = (*p)->marked;
-		if (isdeadm(ow, marked)) {
+		if (isdeadm(ow, marked)) {	// 如果是第一种白色0000 0001 则为不可达(死亡)
 			struct GCObject* gco = *p;
 			*p = (*p)->next;
 			g->GCmemtrav += freeobj(L, gco);
@@ -172,6 +182,8 @@ static struct GCObject** sweeplist(struct lua_State* L, struct GCObject** p, siz
 static void entersweep(struct lua_State* L) {
 	struct global_State* g = G(L);
 	g->gcstate = GCSsweepallgc;
+
+	// 遍历g->allgc里面的所有元素
 	g->sweepgc = sweeplist(L, &g->allgc, 1);
 }
 
