@@ -74,27 +74,33 @@ typedef struct global_State {
 	lu_byte gcstate;
 
 	/**
-	 * 当前gc是哪种白色，10(二进制) 与 01(二进制) 中的一种，在gc的atomic阶段结束时，会从一种切换为另一种。
+	 * 当前新建GCObject的颜色。
+	 * atomic阶段之前是while，atomic阶段之后会被设置为otherwhite。sweep阶段只清理颜色为white的GCObject。
 	*/
 	lu_byte currentwhite;
 
 	/**
-	 * 这是一个单向链表，所有新建的gc对象，都要放入到这个链表中，放入的方式是直接放在链表的头部。
+	 * 所有新创建的GCObject都会被放入allgc链表中。
+	 * 		在sweep阶段会遍历allgc链表，将标记为白色的GCObject释放掉，
+	 * 		将标记为黑色的GCObject重新设置为下一轮GC要被清理的白色。
 	*/
 	struct GCObject* allgc;
 
-	/**
-	 * 这个变量用于记录当前sweep的进度。
+	/** 
+	 * 记录当前要被清理或重新标记的GCObject（或者称为 记录当前sweep的进度）
 	*/
 	struct GCObject** sweepgc;
 
 	/**
-	 * gc对象，
-	 * 首次从白色被标记为灰色的时候，会被放入这个列表，放入这个列表的gc对象，是准备被propagate的对象。
+	 * 被标记为灰色的GCObject会被放入gray链表
+	 * 		首次从白色被标记为灰色的时候，会被放入这个列表，
+	 * 		放入这个列表的gc对象，是准备被propagate的对象。
 	*/
 	struct GCObject* gray;
 
 	/**
+	 * 已被标记为黑色的GCObject重新设置为灰色时，会被放入grayagain链表。
+	 * 
 	 * "向后barrier设置" 机制
 	 * 例如：table对象，从黑色变回灰色时，会放入这个链表中。
 	 * 		作用是避免table反复在黑色和灰色之间来回切换重复扫描。
@@ -102,16 +108,29 @@ typedef struct global_State {
 	struct GCObject* grayagain;
 
 	/**
-	 * 记录开辟内存字节大小的变量之一，真实的大小是totalbytes + GCdebt。
+	 * 虚拟机预设内存总大小。
+	 * 	totalbytes 并不是虚拟机真实的内存大小，为了避免频繁执行 GC 步骤，
+	 * 	Lua 虚拟机会预先"借贷"一部分内存，再将"借贷"值的绝对值加到 totalbytes 变量中，
+	 * 	并且让 GCdebt 变量减去“借贷”值的绝对值。
+	 * 	
+	 * 	每当调用 luaC_newobj 函数、创建新的 GCObject时，会将新开辟的内存大小加到 GCdebt 变量中。
+	 * 	当 GCdebt 的值小于0 时，不触发 GC 步骤操作;当GCdebt 变量大于 0 时，触发执行 GC 步骤操作。
 	*/
 	lu_mem totalbytes;
 
 	/**
+	 * GC 的"借贷"值。Lua 虚拟机真实的内存大小是 totalbytes+GCdebt 的结果
 	 * 这是一个可以为负数的变量，主要用于控制gc触发的时机。当GCdebt>0时，才能触发gc流程。
 	*/
 	l_mem GCdebt;
 
 	/**
+	 * 一次 GC 步操可能会调用若干次 GC 模块的 single_step 函数。
+	 * 每次执行 single_step 函数，处理的内存总量会被记录在 GCmemtrav 变量中。
+	 * 每当 single_step 函数执行完时，它会返回，然后被置 0。
+	 * 返回值会被累加到临时变量中，当临时变量达到一定值的时候会退出 GC 步骤操作
+	 * 
+	 * 
 	 * 每次进行gc操作时，所遍历的对象字节大小之和，单位是byte，
 	 * 当其值大于单步执行的内存上限时，gc终止！！！
 	*/
