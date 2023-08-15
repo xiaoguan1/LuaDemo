@@ -174,9 +174,13 @@ TValue* index2addr(struct lua_State* L, int idx);
 
 // 本质上是 TString* 类型的一维数组
 typedef struct stringtable {
-  struct TString **hash;
-  unsigned int nuse;	//表示当前有多少个经过内部化处理的短字符串
-  unsigned int size;	//表示这个stringtable结构内部的hash数组的大小有多大
+	struct TString **hash;
+
+	//表示当前有多少个经过内部化处理的短字符串
+	unsigned int nuse;
+
+	//表示这个stringtable结构内部的hash数组的大小有多大
+	unsigned int size;
 } stringtable;
 
 

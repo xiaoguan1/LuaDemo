@@ -54,16 +54,9 @@ typedef struct lua_TValue {
 
 
 typedef struct TString {
-	/**
-	 * 这是所有GC对象的公共头部。
-	 * 	指向下一个GC对象实例地址的GCObject* next指针
-	 * 	表示类型的int型变量tt_
-	 * 	表示标记状态的marked变量。
-	 */
-	CommonHeader;
+	CommonHeader;		// 这是所有GC对象的公共头部。
 
-	// 该字符串body的哈希值
-	unsigned int hash;
+	unsigned int hash;	// 该字符串body的哈希值
 
 	/**
 	 * TString为长字符串时：
@@ -81,16 +74,22 @@ typedef struct TString {
 
 	union {
 		/**
-		 * 当TString为短字符串时：hnext域有效。当全局字符串表，有其他字符串hash冲突时，
-		 * 会将这些冲突的TString实例链接成单向链表，hnext的作用则是指向下一个对象在哪个位置。
+		 * 当TString为短字符串时：hnext域有效
+		 * 		当全局字符串表，有其他字符串hash冲突时，
+		 * 		会将这些冲突的TString实例链接成单向链表，
+		 * 		hnext的作用则是指向下一个对象在哪个位置。
 		 * 
-		 * 当TString为长字符串时：lnglen域生效。并且表示长字符串的长度也就是String Body的长度是多少
+		 * 当TString为长字符串时：lnglen域生效。
+		 * 		表示长字符串的长度也就是String Body的长度是多少
 		 */
 		struct TString* hnext;
 		size_t lnglen;
 	} u;
 
-	//这个是用来标记String Body起始位置用的，配合shrlen或lnglen，我们能够找到String Body的结束位置在哪里。
+	/**
+	 * 用来标记String Body起始位置用的!
+	 * 并配合shrlen或lnglen，我们能够找到String Body的结束位置在哪里。
+	 */
 	char contents[1];
 } TString;
 
