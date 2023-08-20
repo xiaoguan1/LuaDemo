@@ -67,10 +67,10 @@ typedef struct TString {
 	 * 		extra=0时表示它需要被gc托管
 	 * 		extra=1时表示该字符串不会被gc回收
 	 */
-	unsigned short extra;
+	lu_byte extra;
 
 	// 仅对短字符串有效，表示短字符串的长度，既String Body的长度是多少。
-	unsigned short shrlen;
+	lu_byte shrlen;
 
 	union {
 		/**
